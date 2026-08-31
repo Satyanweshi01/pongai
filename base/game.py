@@ -49,9 +49,10 @@ while running:
 
     #collision detection
     if (bluebat.rect.colliderect(ball.rect)):
-        ball.collision()
+        #collision response
+        ball.collision(bluebat.rect)
     if (redbat.rect.colliderect(ball.rect)):
-        ball.collision()
+        ball.collision(redbat.rect)
 
     # to end the game loop
     for event in pygame.event.get():

@@ -8,8 +8,8 @@ class Ball():
         self.rect = self.look.get_rect()
         self.rect.x = 385
         self.rect.y = 210
-        self.velocity_x = random.randint(-5,5)
-        self.velocity_y = random.randint(-5,5)
+        self.velocity_x = random.choice([-5,5])
+        self.velocity_y = random.choice([-5,5])
         self.screen = screen
 
     def draw(self):
@@ -23,8 +23,15 @@ class Ball():
     def change_velocity(self):
         if self.rect.y > 425 or self.rect.y < 0:
             self.velocity_y= -self.velocity_y
-    def collision(self):
-        self.velocity_x= -self.velocity_x
+            
+    def collision(self,bat):
+        if bat.centerx > self.rect.centerx: # bat in the right
+            if self.velocity_x > 0:
+                self.velocity_x= -self.velocity_x
+        elif bat.centerx < self.rect.centerx: # bat in the left
+            if self.velocity_x < 0:
+                self.velocity_x= -self.velocity_x
+        
 
 
         
