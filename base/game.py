@@ -1,5 +1,5 @@
 import pygame
-from comp import Ball,Bat
+from comp import Ball,Bat,text
 
 #Asset created by Esoe B.Studios.
 
@@ -32,12 +32,18 @@ redbat = Bat(785,180,screen,redbat_img) #redbat home position (785,180)
 # ball object 
 ball = Ball(screen)
 
+
+ 
+
+
 while running:
 
     #screen.fill((0,0,0)) #fills the window with the rgb color for each iteration
     screen.blit(board)
 
-
+    #scoreboard printing
+    text(str(bluebat.score),screen,(255,255,255),200,0)
+    text(str(redbat.score),screen,(255,255,255),600,0)
 
     ball.draw()
     ball.update_coor()
@@ -51,8 +57,16 @@ while running:
     if (bluebat.rect.colliderect(ball.rect)):
         #collision response
         ball.collision(bluebat.rect)
+
     if (redbat.rect.colliderect(ball.rect)):
         ball.collision(redbat.rect)
+
+    if ball.rect.x > 800: #800 is the left edge of the screen
+        bluebat.score+=1
+        ball.reload()
+    if ball.rect.x < 0:
+        redbat.score+=1
+        ball.reload()
 
     # to end the game loop
     for event in pygame.event.get():
