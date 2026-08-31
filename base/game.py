@@ -1,5 +1,5 @@
 import pygame
-from comp import Ball
+from comp import Ball,Bat
 
 #Asset created by Esoe B.Studios.
 
@@ -14,9 +14,7 @@ clock = pygame.time.Clock()
 
 #adding game assets
 board = pygame.image.load('./assets/Board.png').convert()
-#ball = pygame.image.load('./assets/Ball.png').convert()
-redbat = pygame.image.load('./assets/redbat.png').convert()
-bluebat = pygame.image.load('./assets/bluebat.png').convert()
+
 
 # game loop
 running = True
@@ -24,17 +22,14 @@ running = True
 delta_time = 0.1
 
 
-# bats coordinates
-bb_x = 0 #bluebat home position (0,180)
-bb_y = 180
+# bat objects
+bluebat_img = pygame.image.load('./assets/bluebat.png').convert()
+redbat_img = pygame.image.load('./assets/redbat.png').convert()
 
-rb_x = 785 #redbat home position (785,180)
-rb_y = 180 
+bluebat = Bat(0,180, screen, bluebat_img) #bluebat home position (0,180)
+redbat = Bat(785,180,screen,redbat_img) #redbat home position (785,180)
 
-# ball coordinates
-b_x = 385 #ball home position (385,210)
-b_y = 210
-
+# ball object 
 ball = Ball(screen)
 
 while running:
@@ -44,15 +39,11 @@ while running:
 
 
 
-    #screen.blit(ball, (b_x,30))
-    #screen.blit(ball, (b_x,b_y)) 
     ball.draw()
+    #ball.x += 50 * delta_time
 
-    b_x += 50 * delta_time
-
-    screen.blit(bluebat,(bb_x,bb_y)) 
-    screen.blit(redbat,(rb_x,rb_y)) 
-    
+    redbat.draw()
+    bluebat.draw()    
 
 
 
@@ -68,15 +59,15 @@ while running:
     keys = pygame.key.get_pressed()
     # for bludebat w,s
     if keys[pygame.K_w]:
-        bb_y-=10
+        bluebat.y-=10
     if keys[pygame.K_s]:
-        bb_y+=10
+        bluebat.y+=10
 
     #for red bat
     if keys[pygame.K_UP]:
-        rb_y-=10
+        redbat.y-=10
     if keys[pygame.K_DOWN]:
-        rb_y+=10
+        redbat.y+=10
 
 
     pygame.display.flip()
