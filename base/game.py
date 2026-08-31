@@ -14,7 +14,7 @@ clock = pygame.time.Clock()
 
 #adding game assets
 board = pygame.image.load('./assets/Board.png').convert()
-
+board_rect = board.get_rect()
 
 # game loop
 running = True
@@ -40,16 +40,21 @@ while running:
 
 
     ball.draw()
-    #ball.x += 50 * delta_time
+    ball.update_coor()
+    ball.change_velocity()
+
 
     redbat.draw()
     bluebat.draw()    
 
-
+    #collision detection
+    if (bluebat.rect.colliderect(ball.rect)):
+        ball.collision()
+    if (redbat.rect.colliderect(ball.rect)):
+        ball.collision()
 
     # to end the game loop
     for event in pygame.event.get():
-
         if event.type == pygame.QUIT:
             running = False
 
@@ -59,15 +64,19 @@ while running:
     keys = pygame.key.get_pressed()
     # for bludebat w,s
     if keys[pygame.K_w]:
-        bluebat.y-=10
+        if bluebat.rect.y > 0:
+            bluebat.rect.y-=10
     if keys[pygame.K_s]:
-        bluebat.y+=10
+        if bluebat.rect.y < 331:
+            bluebat.rect.y+=10
 
     #for red bat
     if keys[pygame.K_UP]:
-        redbat.y-=10
+        if redbat.rect.y > 0:
+            redbat.rect.y-=10
     if keys[pygame.K_DOWN]:
-        redbat.y+=10
+        if redbat.rect.y < 331:
+            redbat.rect.y+=10
 
 
     pygame.display.flip()
