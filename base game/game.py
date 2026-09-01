@@ -7,7 +7,7 @@ pygame.init()
 
 #creating window
 screen = pygame.display.set_mode((802, 455))
-pygame.display.set_caption("Pong Reimgined") 
+pygame.display.set_caption("Pong Ai") 
 
 #creating clock to control the rendering
 clock = pygame.time.Clock()
