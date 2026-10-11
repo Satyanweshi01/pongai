@@ -1,5 +1,5 @@
 import pygame
-from comp import Ball,Bat,text
+from utils import Ball,Bat,text
 
 #Asset created by Esoe B.Studios.
 
@@ -27,7 +27,7 @@ bluebat_img = pygame.image.load('./assets/bluebat.png').convert()
 redbat_img = pygame.image.load('./assets/redbat.png').convert()
 
 bluebat = Bat(0,180, screen, bluebat_img) #bluebat home position (0,180)
-redbat = Bat(785,180,screen,redbat_img) #redbat home position (785,180)
+redbat = Bat(785,180,screen, redbat_img) #redbat home position (785,180)
 
 # ball object 
 ball = Ball(screen)
