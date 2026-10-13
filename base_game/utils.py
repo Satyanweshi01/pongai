@@ -67,18 +67,18 @@ class Vectorcls():
 
 
 class Mover():
-    def __init__(self,x,y,mass):
+    def __init__(self,x,y):
         self.x =x
         self.y =y
         self.position = Vectorcls(x,y)
         self.velocity = Vectorcls(0,0)
         self.acceleration = Vectorcls(0,0)
-        self.mass = mass
+        #self.mass = mass
         self.ap_forces = []
     def cal_acce(self):
         self.acceleration = Vectorcls.multi(self.acceleration,0)
         for i in self.ap_forces:
-            i = Vectorcls.div(i,self.mass)
+            #i = Vectorcls.div(i,self.mass)
             self.acceleration = Vectorcls.add(self.acceleration,i)
     def ap_force(self,force:Vectorcls):
         if force not in self.ap_forces:
@@ -88,40 +88,72 @@ class Mover():
         self.position = Vectorcls.add(self.velocity,self.position)
 
 #ball
-class Ball():
-    def __init__(self,screen):
-        self.look = pygame.image.load('./assets/Ball.png').convert()
+
+class Ball(Mover):
+    def __init__(self,x,y,screen,look):
+        super().__init__(x,y)
+        self.look = look
         self.rect = self.look.get_rect()
-        self.rect.x = 385 # middle position of ball
-        self.rect.y = 210
-        self.velocity_x = random.choice([-5,5])
-        self.velocity_y = random.choice([-5,5])
+        self.velocity.x = random.choice([-3,3])
+        self.velocity.y = random.choice([-3,3])
+        self.startingpos_x = x
+        self.startingpos_y = y
+        self.rect.x = x
+        self.rect.y = y
         self.screen = screen
 
     def draw(self):
-        self.screen.blit(self.look, (self.rect.x,self.rect.y))
-
-    def update_coor(self):
-        self.rect.x = self.rect.x + self.velocity_x
-        self.rect.y = self.rect.y + self.velocity_y
+        self.screen.blit(self.look, (self.position.x,self.position.y))
     
     def change_velocity(self): # for wall collision detection
-        if self.rect.y > 425 or self.rect.y < 0: # 425 is the buttom edge of the wall
-            self.velocity_y= -self.velocity_y
+        if self.position.y > 425 or self.position.y < 0: # 425 is the buttom edge of the wall
+            self.velocity.y = -self.velocity.y
 
+    
     def collision(self,bat): # for bat collision detection
-        if bat.centerx > self.rect.centerx: # bat in the right
-            if self.velocity_x > 0:
-                self.velocity_x= -self.velocity_x
-        elif bat.centerx < self.rect.centerx: # bat in the left
-            if self.velocity_x < 0:
-                self.velocity_x= -self.velocity_x
+        self.velocity.x= -self.velocity.x
+    
+    def restart(self):
+        #print(self.startingpos_x,self.startingpos_y)
+        self.position.x = self.startingpos_x
+        self.position.y = self.startingpos_y
+        self.velocity.x = random.choice([-3,3])
+        self.velocity.y = random.choice([-3,3])
 
-    def reload(self):
-        self.rect.x = 385
-        self.rect.y = 210
-        self.velocity_x = random.choice([-5,5])
-        self.velocity_y = random.choice([-5,5])
+# class Ball():
+#     def __init__(self,screen):
+#         self.look = pygame.image.load('./assets/Ball.png').convert()
+#         self.rect = self.look.get_rect()
+#         self.rect.x = 385 # middle position of ball
+#         self.rect.y = 210
+#         self.velocity_x = random.choice([-5,5])
+#         self.velocity_y = random.choice([-5,5])
+#         self.screen = screen
+
+#     def draw(self):
+#         self.screen.blit(self.look, (self.rect.x,self.rect.y))
+
+#     def update_coor(self):
+#         self.rect.x = self.rect.x + self.velocity_x
+#         self.rect.y = self.rect.y + self.velocity_y
+    
+#     def change_velocity(self): # for wall collision detection
+#         if self.rect.y > 425 or self.rect.y < 0: # 425 is the buttom edge of the wall
+#             self.velocity_y= -self.velocity_y
+
+#     def collision(self,bat): # for bat collision detection
+#         if bat.centerx > self.rect.centerx: # bat in the right
+#             if self.velocity_x > 0:
+#                 self.velocity_x= -self.velocity_x
+#         elif bat.centerx < self.rect.centerx: # bat in the left
+#             if self.velocity_x < 0:
+#                 self.velocity_x= -self.velocity_x
+
+#     def reload(self):
+#         self.rect.x = 385
+#         self.rect.y = 210
+#         self.velocity_x = random.choice([-5,5])
+#         self.velocity_y = random.choice([-5,5])
 
 #bat
 class Bat():

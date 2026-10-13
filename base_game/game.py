@@ -30,14 +30,18 @@ bluebat = Bat(0,180, screen, bluebat_img) #bluebat home position (0,180)
 redbat = Bat(785,180,screen, redbat_img) #redbat home position (785,180)
 
 # ball object 
-ball = Ball(screen)
+ball_img = pygame.image.load('./assets/Ball.png').convert()
+ball = Ball(385,210,screen, ball_img)
 
 
  
-
+frame = 0
+hour = 0 
+minute = 0
+sec = 0
+t_time = 0
 
 while running:
-
     #screen.fill((0,0,0)) #fills the window with the rgb color for each iteration
     screen.blit(board)
 
@@ -46,7 +50,7 @@ while running:
     text(str(redbat.score),screen,(255,255,255),600,0)
 
     ball.draw()
-    ball.update_coor()
+    ball.update()
     ball.change_velocity()
 
 
@@ -56,17 +60,23 @@ while running:
     #collision detection
     if (bluebat.rect.colliderect(ball.rect)):
         #collision response
-        ball.collision(bluebat.rect)
+        print("hi1")
+        self.velocity.x= -self.velocity.x
+        #ball.collision(bluebat.rect)
 
     if (redbat.rect.colliderect(ball.rect)):
-        ball.collision(redbat.rect)
+        print("he")
+        #ball.collision(redbat.rect)
+        self.velocity.x= -self.velocity.x
 
-    if ball.rect.x > 800: #800 is the left edge of the screen
+
+    #boundary check
+    if ball.position.x > 820: #800 is the left edge of the screen
         bluebat.score+=1
-        ball.reload()
-    if ball.rect.x < 0:
+        ball.restart()
+    if ball.position.x < -20:
         redbat.score+=1
-        ball.reload()
+        ball.restart()
 
     # to end the game loop
     for event in pygame.event.get():
@@ -93,11 +103,24 @@ while running:
         if redbat.rect.y < 331:
             redbat.rect.y+=10
 
+    frame += 1
+    if frame == 60:
+        sec += 1
+        t_time += 1
+        frame = 0
+    if sec == 60:
+        minute += 1
+        sec = 0
+    if minute == 60:
+        hour += 1
+        minute = 0
+    formatted_time = f"{hour}:{minute}:{sec}"  
+    text(str(formatted_time),screen,(255,255,255),385,0)
+    #print(formatted_time)
 
     pygame.display.flip()
     delta_time = clock.tick(60)/1000
     delta_time = max(0.001, min(0.1, delta_time))
 
-# any graphical element such as images is called surface
 
 pygame.quit()
