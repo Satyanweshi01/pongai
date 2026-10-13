@@ -103,7 +103,9 @@ class Ball(Mover):
         self.screen = screen
 
     def draw(self):
-        self.screen.blit(self.look, (self.position.x,self.position.y))
+        self.rect.x = self.position.x
+        self.rect.y = self.position.y
+        self.screen.blit(self.look, (self.rect.x,self.rect.y))
     
     def change_velocity(self): # for wall collision detection
         if self.position.y > 425 or self.position.y < 0: # 425 is the buttom edge of the wall
@@ -111,7 +113,13 @@ class Ball(Mover):
 
     
     def collision(self,bat): # for bat collision detection
-        self.velocity.x= -self.velocity.x
+        if bat.centerx > self.rect.centerx: # bat in the right
+            if self.velocity.x > 0:
+                self.velocity.x= -self.velocity.x
+        elif bat.centerx < self.rect.centerx: # bat in the left
+            if self.velocity.x < 0:
+                self.velocity.x= -self.velocity.x
+
     
     def restart(self):
         #print(self.startingpos_x,self.startingpos_y)

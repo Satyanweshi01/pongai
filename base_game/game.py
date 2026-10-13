@@ -26,12 +26,12 @@ delta_time = 0.1
 bluebat_img = pygame.image.load('./assets/bluebat.png').convert()
 redbat_img = pygame.image.load('./assets/redbat.png').convert()
 
-bluebat = Bat(0,180, screen, bluebat_img) #bluebat home position (0,180)
-redbat = Bat(785,180,screen, redbat_img) #redbat home position (785,180)
+bluebat = Bat(0, 180, screen, bluebat_img) #bluebat home position (0,180)
+redbat = Bat(785, 180, screen, redbat_img) #redbat home position (785,180)
 
 # ball object 
 ball_img = pygame.image.load('./assets/Ball.png').convert()
-ball = Ball(385,210,screen, ball_img)
+ball = Ball(385, 210, screen, ball_img)
 
 
  
@@ -57,17 +57,12 @@ while running:
     redbat.draw()
     bluebat.draw()    
 
-    #collision detection
-    if (bluebat.rect.colliderect(ball.rect)):
-        #collision response
-        print("hi1")
-        self.velocity.x= -self.velocity.x
-        #ball.collision(bluebat.rect)
+    # collision between ball and bat
+    if ball.rect.colliderect(redbat.rect):
+        ball.collision(redbat.rect)
 
-    if (redbat.rect.colliderect(ball.rect)):
-        print("he")
-        #ball.collision(redbat.rect)
-        self.velocity.x= -self.velocity.x
+    if ball.rect.colliderect(bluebat.rect):
+       ball.collision(bluebat.rect)
 
 
     #boundary check
