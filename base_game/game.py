@@ -31,7 +31,9 @@ redbat = Bat(785, 180, screen, redbat_img) #redbat home position (785,180)
 
 # ball object 
 ball_img = pygame.image.load('./assets/Ball.png').convert()
-ball = Ball(385, 210, screen, ball_img)
+velocityconst = 5 # initial velocity
+ball = Ball(385, 210, screen, ball_img,velocityconst)
+
 
 
  
@@ -44,6 +46,39 @@ t_time = 0
 while running:
     #screen.fill((0,0,0)) #fills the window with the rgb color for each iteration
     screen.blit(board)
+
+    # time update
+    frame += 1
+    if frame == 60:
+        sec += 1
+        t_time += 1
+        frame = 0
+    if sec == 60:
+        minute += 1
+        sec = 0
+    if minute == 60:
+        hour += 1
+        minute = 0
+    formatted_time = f"{hour}:{minute}:{sec}"  
+    text(str(formatted_time),screen,(255,255,255),385,0)
+    #print(formatted_time)
+
+    # speed dynamism
+    if t_time < 30:
+        ball.velocityconst = 5 
+    elif t_time < 60:
+        ball.velocityconst = 7 
+    elif t_time < 120:
+        ball.velocityconst = 9
+    elif t_time < 180:
+        ball.velocityconst = 11
+    elif t_time < 300:
+        ball.velocityconst = 13
+    else:
+        ball.velocityconst = 15
+
+    ball.velocity_update()
+    print(ball.velocityconst)
 
     #scoreboard printing
     text(str(bluebat.score),screen,(255,255,255),200,0)
@@ -85,33 +120,21 @@ while running:
     # for bludebat w,s
     if keys[pygame.K_w]:
         if bluebat.rect.y > 0:
-            bluebat.rect.y-=10
+            bluebat.rect.y-=20
     if keys[pygame.K_s]:
         if bluebat.rect.y < 331:
-            bluebat.rect.y+=10
+            bluebat.rect.y+=20
 
     #for red bat
     if keys[pygame.K_UP]:
         if redbat.rect.y > 0:
-            redbat.rect.y-=10
+            redbat.rect.y-=20
     if keys[pygame.K_DOWN]:
         if redbat.rect.y < 331:
-            redbat.rect.y+=10
+            redbat.rect.y+=20
 
-    frame += 1
-    if frame == 60:
-        sec += 1
-        t_time += 1
-        frame = 0
-    if sec == 60:
-        minute += 1
-        sec = 0
-    if minute == 60:
-        hour += 1
-        minute = 0
-    formatted_time = f"{hour}:{minute}:{sec}"  
-    text(str(formatted_time),screen,(255,255,255),385,0)
-    #print(formatted_time)
+
+    
 
     pygame.display.flip()
     delta_time = clock.tick(60)/1000

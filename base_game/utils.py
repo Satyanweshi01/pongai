@@ -90,12 +90,13 @@ class Mover():
 #ball
 
 class Ball(Mover):
-    def __init__(self,x,y,screen,look):
+    def __init__(self,x,y,screen,look,velocityconst):
         super().__init__(x,y)
+        self.velocityconst = velocityconst
         self.look = look
         self.rect = self.look.get_rect()
-        self.velocity.x = random.choice([-3,3])
-        self.velocity.y = random.choice([-3,3])
+        self.velocity.x = random.choice([-self.velocityconst,self.velocityconst])
+        self.velocity.y = random.choice([-self.velocityconst,self.velocityconst])
         self.startingpos_x = x
         self.startingpos_y = y
         self.rect.x = x
@@ -120,13 +121,16 @@ class Ball(Mover):
             if self.velocity.x < 0:
                 self.velocity.x= -self.velocity.x
 
+    def velocity_update(self):
+        unit_vec = self.velocity.normalize()
+        self.velocity = Vectorcls.multi(unit_vec,self.velocityconst)
     
     def restart(self):
         #print(self.startingpos_x,self.startingpos_y)
         self.position.x = self.startingpos_x
         self.position.y = self.startingpos_y
-        self.velocity.x = random.choice([-3,3])
-        self.velocity.y = random.choice([-3,3])
+        self.velocity.x = random.choice([-self.velocityconst,self.velocityconst])
+        self.velocity.y = random.choice([-self.velocityconst,self.velocityconst])
 
 # class Ball():
 #     def __init__(self,screen):
