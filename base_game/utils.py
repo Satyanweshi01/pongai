@@ -88,13 +88,16 @@ class Mover():
         self.position = Vectorcls.add(self.velocity,self.position)
 
 #ball
-
 class Ball(Mover):
-    def __init__(self,x,y,screen,look,velocityconst):
+    def __init__(self,x,y,screen,velocityconst,radius):
         super().__init__(x,y)
         self.velocityconst = velocityconst
-        self.look = look
-        self.rect = self.look.get_rect()
+        self.radius = radius
+        self.rect = pygame.Rect(
+            x, y,
+            self.radius * 2,
+            self.radius * 2
+        )
         self.velocity.x = random.choice([-self.velocityconst,self.velocityconst])
         self.velocity.y = random.choice([-self.velocityconst,self.velocityconst])
         self.startingpos_x = x
@@ -104,9 +107,15 @@ class Ball(Mover):
         self.screen = screen
 
     def draw(self):
-        self.rect.x = self.position.x
-        self.rect.y = self.position.y
-        self.screen.blit(self.look, (self.rect.x,self.rect.y))
+        self.rect.x = round(self.position.x)
+        self.rect.y = round(self.position.y)
+
+        pygame.draw.circle(
+            self.screen,
+            (255, 255, 255),
+            self.rect.center,
+            self.radius
+        )
     
     def change_velocity(self): # for wall collision detection
         if self.position.y > 425 or self.position.y < 0: # 425 is the buttom edge of the wall
@@ -132,52 +141,21 @@ class Ball(Mover):
         self.velocity.x = random.choice([-self.velocityconst,self.velocityconst])
         self.velocity.y = random.choice([-self.velocityconst,self.velocityconst])
 
-# class Ball():
-#     def __init__(self,screen):
-#         self.look = pygame.image.load('./assets/Ball.png').convert()
-#         self.rect = self.look.get_rect()
-#         self.rect.x = 385 # middle position of ball
-#         self.rect.y = 210
-#         self.velocity_x = random.choice([-5,5])
-#         self.velocity_y = random.choice([-5,5])
-#         self.screen = screen
-
-#     def draw(self):
-#         self.screen.blit(self.look, (self.rect.x,self.rect.y))
-
-#     def update_coor(self):
-#         self.rect.x = self.rect.x + self.velocity_x
-#         self.rect.y = self.rect.y + self.velocity_y
-    
-#     def change_velocity(self): # for wall collision detection
-#         if self.rect.y > 425 or self.rect.y < 0: # 425 is the buttom edge of the wall
-#             self.velocity_y= -self.velocity_y
-
-#     def collision(self,bat): # for bat collision detection
-#         if bat.centerx > self.rect.centerx: # bat in the right
-#             if self.velocity_x > 0:
-#                 self.velocity_x= -self.velocity_x
-#         elif bat.centerx < self.rect.centerx: # bat in the left
-#             if self.velocity_x < 0:
-#                 self.velocity_x= -self.velocity_x
-
-#     def reload(self):
-#         self.rect.x = 385
-#         self.rect.y = 210
-#         self.velocity_x = random.choice([-5,5])
-#         self.velocity_y = random.choice([-5,5])
-
 #bat
 class Bat():
-    def __init__(self, x, y, screen, look):
+    def __init__(self, x, y, screen, color, width, height):
+        self.color = color
         self.screen = screen
-        self.look = look
-        self.rect = self.look.get_rect()
-        self.rect.x = x
-        self.rect.y = y
+        self.width = width
+        self.height = height
+        self.rect = pygame.Rect(x, y, width, height)
         self.score = 0
     def draw(self):
-        self.screen.blit(self.look, (self.rect.x,self.rect.y))
+        pygame.draw.rect(
+            self.screen,
+            self.color,
+            self.rect
+        )
 
 
 def text(string,screen, text_color, x, y):

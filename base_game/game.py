@@ -1,8 +1,6 @@
 import pygame
 from utils import Ball,Bat,text
 
-#Asset created by Esoe B.Studios.
-
 pygame.init()
 
 #creating window
@@ -12,10 +10,6 @@ pygame.display.set_caption("Pong Ai")
 #creating clock to control the rendering
 clock = pygame.time.Clock()
 
-#adding game assets
-board = pygame.image.load('./assets/Board.png').convert()
-board_rect = board.get_rect()
-
 # game loop
 running = True
 
@@ -23,20 +17,21 @@ delta_time = 0.1
 
 
 # bat objects
-bluebat_img = pygame.image.load('./assets/bluebat.png').convert()
-redbat_img = pygame.image.load('./assets/redbat.png').convert()
+bluebat = Bat(0, 180, screen, (0, 100, 255), 20, 100) #bluebat home position (0,180)
+redbat = Bat(785, 180, screen, (255, 50, 50), 20, 100) #redbat home position (785,180)
 
-bluebat = Bat(0, 180, screen, bluebat_img) #bluebat home position (0,180)
-redbat = Bat(785, 180, screen, redbat_img) #redbat home position (785,180)
+#config variables
+BATSENSITIVITY = 15
+BATUPBOUNDARY = 0
+BATDOWNBOUNDARY = 350
+
+WALLLEFTBOUNDARY = -20
+WALLRIGHTBOUNDARY = 820
+velocityconst = 5 # initial velocity
 
 # ball object 
-ball_img = pygame.image.load('./assets/Ball.png').convert()
-velocityconst = 5 # initial velocity
-ball = Ball(385, 210, screen, ball_img,velocityconst)
+ball = Ball(385, 210, screen,velocityconst, 10)
 
-
-
- 
 frame = 0
 hour = 0 
 minute = 0
@@ -45,7 +40,16 @@ t_time = 0
 
 while running:
     #screen.fill((0,0,0)) #fills the window with the rgb color for each iteration
-    screen.blit(board)
+    screen.fill((0, 0, 0))  # Black background
+
+    # Draw the center line
+    pygame.draw.line(
+                    screen,
+                    (255, 255, 255),
+                    (401, 0),
+                    (401, 455),
+                    2
+        )
 
     # time update
     frame += 1
@@ -78,7 +82,7 @@ while running:
         ball.velocityconst = 15
 
     ball.velocity_update()
-    print(ball.velocityconst)
+    #print(ball.velocityconst)
 
     #scoreboard printing
     text(str(bluebat.score),screen,(255,255,255),200,0)
@@ -101,10 +105,10 @@ while running:
 
 
     #boundary check
-    if ball.position.x > 820: #800 is the left edge of the screen
+    if ball.position.x > WALLRIGHTBOUNDARY: #820 is the right edge of the screen
         bluebat.score+=1
         ball.restart()
-    if ball.position.x < -20:
+    if ball.position.x < WALLLEFTBOUNDARY:
         redbat.score+=1
         ball.restart()
 
@@ -119,19 +123,19 @@ while running:
     keys = pygame.key.get_pressed()
     # for bludebat w,s
     if keys[pygame.K_w]:
-        if bluebat.rect.y > 0:
-            bluebat.rect.y-=20
+        if bluebat.rect.y > BATUPBOUNDARY:
+            bluebat.rect.y-=BATSENSITIVITY
     if keys[pygame.K_s]:
-        if bluebat.rect.y < 331:
-            bluebat.rect.y+=20
+        if bluebat.rect.y < BATDOWNBOUNDARY:
+            bluebat.rect.y+=BATSENSITIVITY
 
     #for red bat
     if keys[pygame.K_UP]:
-        if redbat.rect.y > 0:
-            redbat.rect.y-=20
+        if redbat.rect.y > BATUPBOUNDARY:
+            redbat.rect.y-=BATSENSITIVITY
     if keys[pygame.K_DOWN]:
-        if redbat.rect.y < 331:
-            redbat.rect.y+=20
+        if redbat.rect.y < BATDOWNBOUNDARY:
+            redbat.rect.y+=BATSENSITIVITY
 
 
     
