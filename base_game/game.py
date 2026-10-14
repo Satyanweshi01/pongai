@@ -43,49 +43,50 @@ while running:
     screen.fill((0, 0, 0))  # Black background
 
     # Draw the center line
+    # Outer glow
     pygame.draw.line(
-        screen,
-        (0, 100, 130),
-        (401, 75),
-        (401, 455),
-        2
-    )
-    #scoreboard printing
+    screen, (0, 70, 100),
+    (401, 0), (401, 455), 6
+)
 
-    # Main scoreboard panel
+# Bright neon center
+    pygame.draw.line(
+    screen, (0, 255, 255),
+    (401, 0), (401, 455), 2
+)
+    # Scoreboard panel
     pygame.draw.rect(
     screen, (12, 18, 32),
-    (150, 5, 502, 65),
-    border_radius=12
-    )
+    (250, 5, 302, 55),
+    border_radius=10
+)
 
-    # Colored player panels
+# Colored player panels
     pygame.draw.rect(
-        screen, (15, 42, 58),
-        (160, 10, 130, 55),
-        border_radius=8
-    )   
+    screen, (15, 42, 58),
+    (258, 9, 90, 47),
+    border_radius=7
+)
 
     pygame.draw.rect(
-        screen, (55, 24, 35),
-        (512, 10, 130, 55),
-        border_radius=8
-    )   
+    screen, (55, 24, 35),
+    (454, 9, 90, 47),
+    border_radius=7
+)
 
-    # Player labels
-    text("PLAYER 1", screen, (0, 220, 255), 195, 12,
-     font="Arial", size=14, bold=True)
+# Player labels
+    text("PLAYER 1", screen, (0, 220, 255), 279, 11,
+     font="Arial", size=10, bold=True)
 
-    text("PLAYER 2", screen, (255, 75, 90), 545, 12,
-     font="Arial", size=14, bold=True)
+    text("PLAYER 2", screen, (255, 75, 90), 475, 11,
+     font="Arial", size=10, bold=True)
 
-    # Scores
+# Scores
     text(f"{bluebat.score:02}", screen, (0, 240, 255),
-     205, 30, font="Arial", size=28, bold=True)
+     290, 29, font="Arial", size=20, bold=True)
 
     text(f"{redbat.score:02}", screen, (255, 80, 95),
-     560, 30, font="Arial", size=28, bold=True)
-     
+     490, 29, font="Arial", size=20, bold=True)
     # time update
     frame += 1
     if frame == 60:
@@ -100,17 +101,17 @@ while running:
         minute = 0
     formatted_time = f"{hour:02}:{minute:02}:{sec:02}"
 
-    # Timer in the center
-    timer_font = pygame.font.SysFont("Arial", 22, bold=True)
+    # Timer
+    timer_font = pygame.font.SysFont("Arial", 16, bold=True)
     timer_img = timer_font.render(
         formatted_time, True, (255, 255, 255)
     )
-    timer_rect = timer_img.get_rect(center=(401, 28))
+    timer_rect = timer_img.get_rect(center=(401, 25))
     screen.blit(timer_img, timer_rect)
 
-    # Small VS label
-    text("VS", screen, (130, 150, 175), 391, 45,
-     font="Arial", size=12, bold=True)
+    # VS label
+    text("VS", screen, (130, 150, 175), 395, 39,
+        font="Arial", size=9, bold=True)
 
     # speed dynamism
     if t_time < 30:
