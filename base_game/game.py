@@ -44,13 +44,48 @@ while running:
 
     # Draw the center line
     pygame.draw.line(
-                    screen,
-                    (255, 255, 255),
-                    (401, 0),
-                    (401, 455),
-                    2
-        )
+        screen,
+        (0, 100, 130),
+        (401, 75),
+        (401, 455),
+        2
+    )
+    #scoreboard printing
 
+    # Main scoreboard panel
+    pygame.draw.rect(
+    screen, (12, 18, 32),
+    (150, 5, 502, 65),
+    border_radius=12
+    )
+
+    # Colored player panels
+    pygame.draw.rect(
+        screen, (15, 42, 58),
+        (160, 10, 130, 55),
+        border_radius=8
+    )   
+
+    pygame.draw.rect(
+        screen, (55, 24, 35),
+        (512, 10, 130, 55),
+        border_radius=8
+    )   
+
+    # Player labels
+    text("PLAYER 1", screen, (0, 220, 255), 195, 12,
+     font="Arial", size=14, bold=True)
+
+    text("PLAYER 2", screen, (255, 75, 90), 545, 12,
+     font="Arial", size=14, bold=True)
+
+    # Scores
+    text(f"{bluebat.score:02}", screen, (0, 240, 255),
+     205, 30, font="Arial", size=28, bold=True)
+
+    text(f"{redbat.score:02}", screen, (255, 80, 95),
+     560, 30, font="Arial", size=28, bold=True)
+     
     # time update
     frame += 1
     if frame == 60:
@@ -63,9 +98,19 @@ while running:
     if minute == 60:
         hour += 1
         minute = 0
-    formatted_time = f"{hour}:{minute}:{sec}"  
-    text(str(formatted_time),screen,(255,255,255),385,0)
-    #print(formatted_time)
+    formatted_time = f"{hour:02}:{minute:02}:{sec:02}"
+
+    # Timer in the center
+    timer_font = pygame.font.SysFont("Arial", 22, bold=True)
+    timer_img = timer_font.render(
+        formatted_time, True, (255, 255, 255)
+    )
+    timer_rect = timer_img.get_rect(center=(401, 28))
+    screen.blit(timer_img, timer_rect)
+
+    # Small VS label
+    text("VS", screen, (130, 150, 175), 391, 45,
+     font="Arial", size=12, bold=True)
 
     # speed dynamism
     if t_time < 30:
@@ -84,9 +129,6 @@ while running:
     ball.velocity_update()
     #print(ball.velocityconst)
 
-    #scoreboard printing
-    text(str(bluebat.score),screen,(255,255,255),200,0)
-    text(str(redbat.score),screen,(255,255,255),600,0)
 
     ball.draw()
     ball.update()

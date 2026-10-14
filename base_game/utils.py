@@ -158,7 +158,9 @@ class Bat():
         )
 
 
-def text(string,screen, text_color, x, y):
-    font = pygame.font.SysFont("Arial", 20)
-    img = font.render(string, True, text_color)
-    screen.blit(img,(x,y))
+def text(string, screen, text_color, x, y,
+         font="Arial", size=20, bold=False):
+
+    font_obj = pygame.font.SysFont(font, size, bold=bold)
+    img = font_obj.render(string, True, text_color)
+    screen.blit(img, (x, y))
