@@ -118,7 +118,7 @@ class Ball(Mover):
         )
     
     def change_velocity(self): # for wall collision detection
-        if self.position.y > 425 or self.position.y < 0: # 425 is the buttom edge of the wall
+        if self.position.y > 435 or self.position.y < 0: # 425 is the buttom edge of the wall
             self.velocity.y = -self.velocity.y
 
     

@@ -34,6 +34,10 @@ velocityconst = 5 # initial velocity
 # ball object 
 ball = Ball(385, 210, screen,velocityconst, 10)
 
+# neural network object
+nn1 = NeuralNetwork()
+nn2 = NeuralNetwork()
+
 frame = 0
 hour = 0 
 minute = 0
@@ -176,7 +180,6 @@ while running:
     #         bluebat.rect.y+=BATSENSITIVITY
 
     nn1_inputs = [ball.position.x,ball.position.y,ball.velocity.x,ball.velocity.y,bluebat.rect.x,bluebat.rect.y]
-    nn1 = NeuralNetwork()
     nn1_decision = nn1.forward(nn1_inputs)
     if nn1_decision == 1:
         if bluebat.rect.y > BATUPBOUNDARY:
@@ -197,7 +200,6 @@ while running:
     # neural network decision making section
     # nn_decision = neural_network([ball.position.x,ball.position.y,ball.velocity.x,ball.velocity.y,redbat.rect.x,redbat.rect.y])
     nn2_inputs = [ball.position.x,ball.position.y,ball.velocity.x,ball.velocity.y,redbat.rect.x,redbat.rect.y]
-    nn2 = NeuralNetwork()
     nn2_decision = nn2.forward(nn2_inputs)
     if nn2_decision == 1:
         if redbat.rect.y > BATUPBOUNDARY:
