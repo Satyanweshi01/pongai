@@ -37,4 +37,4 @@ def neural_network(inputs): #inputs here should be 1d array of 6 inputs
     print(f"layer output: {layer2.output}")
     decision = np.argmax(layer2.output)
     print(f"the decision: {decision}")
-    return decision
+    return decision # here 0 is do nothing, 1 is up motion, 2 is down motion

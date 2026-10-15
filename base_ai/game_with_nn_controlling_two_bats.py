@@ -1,7 +1,7 @@
 import pygame
 from utils import Ball,Bat,text
-from nn import neural_network
-
+#from nn import neural_network
+from nn_class import NeuralNetwork
 
 pygame.init()
 
@@ -166,29 +166,43 @@ while running:
 
     #keyboard input for bats
     keys = pygame.key.get_pressed()
-    # for bludebat w,s
-    if keys[pygame.K_w]:
+
+    # for bludebat w,s (now it is controlled by the nn)
+    # if keys[pygame.K_w]:
+    #     if bluebat.rect.y > BATUPBOUNDARY:
+    #         bluebat.rect.y-=BATSENSITIVITY
+    # if keys[pygame.K_s]:
+    #     if bluebat.rect.y < BATDOWNBOUNDARY:
+    #         bluebat.rect.y+=BATSENSITIVITY
+
+    nn1_inputs = [ball.position.x,ball.position.y,ball.velocity.x,ball.velocity.y,bluebat.rect.x,bluebat.rect.y]
+    nn1 = NeuralNetwork()
+    nn1_decision = nn1.forward(nn1_inputs)
+    if nn1_decision == 1:
         if bluebat.rect.y > BATUPBOUNDARY:
             bluebat.rect.y-=BATSENSITIVITY
-    if keys[pygame.K_s]:
+    elif nn1_decision == 2:
         if bluebat.rect.y < BATDOWNBOUNDARY:
             bluebat.rect.y+=BATSENSITIVITY
 
-    #for red bat
-    if keys[pygame.K_UP]:
-        if redbat.rect.y > BATUPBOUNDARY:
-            redbat.rect.y-=BATSENSITIVITY
-    if keys[pygame.K_DOWN]:
-        if redbat.rect.y < BATDOWNBOUNDARY:
-            redbat.rect.y+=BATSENSITIVITY
+    #for red bat (now it is controlled by the nn)
+    # if keys[pygame.K_UP]:
+    #     if redbat.rect.y > BATUPBOUNDARY:
+    #         redbat.rect.y-=BATSENSITIVITY
+    # if keys[pygame.K_DOWN]:
+    #     if redbat.rect.y < BATDOWNBOUNDARY:
+    #         redbat.rect.y+=BATSENSITIVITY
 
 
     # neural network decision making section
-    nn_decision = neural_network([ball.position.x,ball.position.y,ball.velocity.x,ball.velocity.y,redbat.rect.x,redbat.rect.y])
-    if nn_decision == 1:
+    # nn_decision = neural_network([ball.position.x,ball.position.y,ball.velocity.x,ball.velocity.y,redbat.rect.x,redbat.rect.y])
+    nn2_inputs = [ball.position.x,ball.position.y,ball.velocity.x,ball.velocity.y,redbat.rect.x,redbat.rect.y]
+    nn2 = NeuralNetwork()
+    nn2_decision = nn2.forward(nn2_inputs)
+    if nn2_decision == 1:
         if redbat.rect.y > BATUPBOUNDARY:
             redbat.rect.y-=BATSENSITIVITY
-    elif nn_decision == 2:
+    elif nn2_decision == 2:
         if redbat.rect.y < BATDOWNBOUNDARY:
             redbat.rect.y+=BATSENSITIVITY
     
