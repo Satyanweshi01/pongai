@@ -30,8 +30,8 @@ class NeuralNetwork:
         self.hiddenlayer1 = Layer_Dense(6,4) # first hidden layer which consists 4 perceptron
         self.outputlayer = Output_Layer_Dense(4,3) # last output layer which consists 3 perceptron
     
-    def weights_save(self):
-        np.savez("Neural Network config", hiddenlayer1weights = self.hiddenlayer1.weights, hiddenlayer1biases = self.hiddenlayer1.biases, outputlayerweights = self.outputlayer.weights, outputlayerbiases = self.outputlayer.biases)
+    def weights_save(self,name:str):
+        np.savez(name, hiddenlayer1weights = self.hiddenlayer1.weights, hiddenlayer1biases = self.hiddenlayer1.biases, outputlayerweights = self.outputlayer.weights, outputlayerbiases = self.outputlayer.biases)
 
     def weights_load(self,npz_file):
         b = np.load(npz_file)

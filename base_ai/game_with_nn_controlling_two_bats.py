@@ -36,7 +36,9 @@ ball = Ball(385, 210, screen,velocityconst, 10)
 
 # neural network object
 nn1 = NeuralNetwork()
+
 nn2 = NeuralNetwork()
+
 
 frame = 0
 hour = 0 
