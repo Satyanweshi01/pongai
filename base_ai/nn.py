@@ -4,7 +4,6 @@ X = [   [1.0, 2.0, 3.0, 2.5, 1.6, 1.4], # here we are providing multiple inputs 
         [2.0, 5.0, -1.0, 2.0, 1.2, -2.9], # six inputs
         [-1.5, 2.7, 3.3, -0.8, 0.2, 0.3]  ]
 
-
 # first hidden layer which consists 4 perceptron
 class Layer_Dense:
     def __init__(self, n_inputs, n_perceptron):
