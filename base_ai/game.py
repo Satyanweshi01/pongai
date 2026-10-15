@@ -1,5 +1,7 @@
 import pygame
 from utils import Ball,Bat,text
+from nn import neural_network
+
 
 pygame.init()
 
@@ -181,8 +183,15 @@ while running:
             redbat.rect.y+=BATSENSITIVITY
 
 
+    # neural network decision making section
+    nn_decision = neural_network([ball.position.x,ball.position.y,ball.velocity.x,ball.velocity.y,redbat.rect.x,redbat.rect.y])
+    if nn_decision == 1:
+        if redbat.rect.y > BATUPBOUNDARY:
+            redbat.rect.y-=BATSENSITIVITY
+    elif nn_decision == 2:
+        if redbat.rect.y < BATDOWNBOUNDARY:
+            redbat.rect.y+=BATSENSITIVITY
     
-
     pygame.display.flip()
     delta_time = clock.tick(60)/1000
     delta_time = max(0.001, min(0.1, delta_time))
