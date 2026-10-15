@@ -31,8 +31,10 @@ def relu_activate(inputs):
             output.append(0)
         # output.append(max(0,i))
 
-
-
+def softmax_activate(inputs):
+    output = []
+    exp_values = np.exp(inputs - np.max(inputs, axis= 1, keepdims=True)) # to avoid a overflow
+    output = exp_values / np.sum(exp_values, axis = 1, keepdims = True)
 
 def create_data(points, classes):
     X = np.zeros((points*classes, 2))
