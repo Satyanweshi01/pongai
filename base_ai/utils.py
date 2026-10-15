@@ -118,18 +118,23 @@ class Ball(Mover):
         )
     
     def change_velocity(self): # for wall collision detection
-        if self.position.y > 435 or self.position.y < 0: # 425 is the buttom edge of the wall
+        WALLUPBOUNDARY = 0
+        WALLDOWNBOUNDARY = 435
+
+        if self.position.y > WALLDOWNBOUNDARY or self.position.y < WALLUPBOUNDARY: # 425 is the buttom edge of the wall
             self.velocity.y = -self.velocity.y
 
     
     def collision(self,bat): # for bat collision detection
+        OFFSET = 10
         if bat.centerx > self.rect.centerx: # bat in the right
             if self.velocity.x > 0:
+                self.position.x = self.position.x - OFFSET
                 self.velocity.x= -self.velocity.x
         elif bat.centerx < self.rect.centerx: # bat in the left
             if self.velocity.x < 0:
+                self.position.x = self.position.x + OFFSET
                 self.velocity.x= -self.velocity.x
-
     def velocity_update(self):
         unit_vec = self.velocity.normalize()
         self.velocity = Vectorcls.multi(unit_vec,self.velocityconst)

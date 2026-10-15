@@ -38,6 +38,6 @@ class NeuralNetwork:
     def forward(self,inputs):
         self.hiddenlayer1.relu_forward(inputs)
         self.outputlayer.softmax_forward(self.hiddenlayer1.output)
-        print(np.argmax(self.outputlayer.output))
+        #print(np.argmax(self.outputlayer.output))
         return np.argmax(self.outputlayer.output) # here 0 is do nothing, 1 is up motion, 2 is down motion
     
