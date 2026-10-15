@@ -127,12 +127,14 @@ class Ball(Mover):
     
     def collision(self,bat): # for bat collision detection
         OFFSET = 10
-        if bat.centerx > self.rect.centerx: # bat in the right
+        if bat.rect.centerx > self.rect.centerx: # bat in the right
             if self.velocity.x > 0:
+                bat.collision+= 1
                 self.position.x = self.position.x - OFFSET
                 self.velocity.x= -self.velocity.x
-        elif bat.centerx < self.rect.centerx: # bat in the left
+        elif bat.rect.centerx < self.rect.centerx: # bat in the left
             if self.velocity.x < 0:
+                bat.collision+= 1
                 self.position.x = self.position.x + OFFSET
                 self.velocity.x= -self.velocity.x
     def velocity_update(self):
@@ -153,6 +155,7 @@ class Bat():
         self.screen = screen
         self.width = width
         self.height = height
+        self.collision = 0
         self.rect = pygame.Rect(x, y, width, height)
         self.score = 0
     def draw(self):

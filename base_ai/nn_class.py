@@ -1,4 +1,5 @@
 import numpy as np
+from utils import Bat
 
 class Layer_Dense:
         def __init__(self, n_inputs, n_perceptron):
@@ -46,3 +47,8 @@ class NeuralNetwork:
         #print(np.argmax(self.outputlayer.output))
         return np.argmax(self.outputlayer.output) # here 0 is do nothing, 1 is up motion, 2 is down motion
     
+class PaddleCreature():
+    def __init__(self, x, y, screen, color, width, height):
+        self.brain = NeuralNetwork()
+        self.bat = Bat( x, y, screen, color, width, height)
+        self.fitness = 0

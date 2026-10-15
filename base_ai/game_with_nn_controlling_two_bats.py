@@ -36,8 +36,9 @@ ball = Ball(385, 210, screen,velocityconst, 10)
 
 # neural network object
 nn1 = NeuralNetwork()
-
+#nn1.weights_save("nn1")
 nn2 = NeuralNetwork()
+#nn2.weights_save("nn2")
 
 
 frame = 0
