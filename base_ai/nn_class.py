@@ -28,10 +28,21 @@ class Output_Layer_Dense:
 class NeuralNetwork:
     def __init__(self):
         self.hiddenlayer1 = Layer_Dense(6,4) # first hidden layer which consists 4 perceptron
-        print(self.hiddenlayer1.weights,self.hiddenlayer1.biases)
         self.outputlayer = Output_Layer_Dense(4,3) # last output layer which consists 3 perceptron
+    
+    def weights_save(self):
+        np.savez("Neural Network config", hiddenlayer1weights = self.hiddenlayer1.weights, hiddenlayer1biases = self.hiddenlayer1.biases, outputlayerweights = self.outputlayer.weights, outputlayerbiases = self.outputlayer.biases)
+
+    def weights_load(self,npz_file):
+        b = np.load(npz_file)
+        self.hiddenlayer1.weights = b['hiddenlayer1weights']
+        self.hiddenlayer1.biases = b['hiddenlayer1biases']
+        self.outputlayer.weights = b['outputlayerweights']
+        self.outputlayer.biases = b['outputlayerbiases']
 
     def forward(self,inputs):
         self.hiddenlayer1.relu_forward(inputs)
         self.outputlayer.softmax_forward(self.hiddenlayer1.output)
+        #print(np.argmax(self.outputlayer.output))
         return np.argmax(self.outputlayer.output) # here 0 is do nothing, 1 is up motion, 2 is down motion
+    

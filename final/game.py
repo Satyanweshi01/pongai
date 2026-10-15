@@ -36,6 +36,8 @@ ball = Ball(385, 210, screen,velocityconst, 10)
 
 #neural network object
 nn1 = NeuralNetwork()
+#nn1.weights_save()
+#nn1.weights_load("Neural Network config.npz")
 
 frame = 0
 hour = 0 
@@ -187,7 +189,9 @@ while running:
     elif nn1_decision == 2:
         if redbat.rect.y < BATDOWNBOUNDARY:
             redbat.rect.y+=BATSENSITIVITY
-    #nn1.weights_save()
+
+    #print(nn1.hiddenlayer1.weights)
+
     pygame.display.flip()
     delta_time = clock.tick(60)/1000
     delta_time = max(0.001, min(0.1, delta_time))
