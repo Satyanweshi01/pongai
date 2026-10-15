@@ -1,6 +1,8 @@
 import math
 import random
 import pygame
+from nn_comp import NeuralNetwork
+
 
 class Vectorcls():
     def __init__(self,x,y):
@@ -11,14 +13,17 @@ class Vectorcls():
         vecx = vec1.x+vec2.x
         vecy = vec1.y+vec2.y
         return Vectorcls(vecx,vecy)
+        
     def sub(vec1:Vectorcls,vec2:Vectorcls):
         vecx = vec1.x-vec2.x
         vecy = vec1.y-vec2.y
         return Vectorcls(vecx,vecy)
+
     def multi(vec1:Vectorcls,scalar):
         vecx = vec1.x*scalar
         vecy = vec1.y*scalar
         return Vectorcls(vecx,vecy)
+
     def div(vec1:Vectorcls,scalar):
         vecx = vec1.x/scalar
         vecy = vec1.y/scalar
@@ -127,15 +132,16 @@ class Ball(Mover):
     
     def collision(self,bat): # for bat collision detection
         OFFSET = 10
-        if bat.centerx > self.rect.centerx: # bat in the right
+        if bat.rect.centerx > self.rect.centerx: # bat in the right
             if self.velocity.x > 0:
+                bat.collision+= 1
                 self.position.x = self.position.x - OFFSET
                 self.velocity.x= -self.velocity.x
-        elif bat.centerx < self.rect.centerx: # bat in the left
+        elif bat.rect.centerx < self.rect.centerx: # bat in the left
             if self.velocity.x < 0:
+                bat.collision+= 1
                 self.position.x = self.position.x + OFFSET
                 self.velocity.x= -self.velocity.x
-
     def velocity_update(self):
         unit_vec = self.velocity.normalize()
         self.velocity = Vectorcls.multi(unit_vec,self.velocityconst)
@@ -154,6 +160,7 @@ class Bat():
         self.screen = screen
         self.width = width
         self.height = height
+        self.collision = 0
         self.rect = pygame.Rect(x, y, width, height)
         self.score = 0
     def draw(self):
@@ -162,7 +169,8 @@ class Bat():
             self.color,
             self.rect
         )
-
+class GameInstance:
+    pass
 
 def text(string, screen, text_color, x, y,
          font="Arial", size=20, bold=False):
@@ -170,3 +178,11 @@ def text(string, screen, text_color, x, y,
     font_obj = pygame.font.SysFont(font, size, bold=bold)
     img = font_obj.render(string, True, text_color)
     screen.blit(img, (x, y))
+
+class PaddleCreature():
+    def __init__(self, x, y, screen, color, width, height):
+        self.brain = NeuralNetwork() # contains all the weights that will be modified during evolutionary training
+        self.bat = Bat(x, y, screen, color, width, height) # contains details which needed for fitness function
+        self.fitness = 0
+    def fitness_cal(self):
+        self.fitness = self.bat.collision + (self.bat.score * 2) # I am giving more priority to the network having for scores 

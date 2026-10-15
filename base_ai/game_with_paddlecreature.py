@@ -1,6 +1,6 @@
 import pygame
-from utils import Ball,Bat,text
-from nn_class import NeuralNetwork, PaddleCreature
+from nn_comp import NeuralNetwork
+from game_comp import PaddleCreature,Ball,Bat,text
 
 pygame.init()
 
