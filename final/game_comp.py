@@ -122,15 +122,11 @@ class Ball(Mover):
             self.radius
         )
     
-    def change_velocity(self): # for wall collision detection
-        WALLUPBOUNDARY = 0
-        WALLDOWNBOUNDARY = 435
-
-        if self.position.y > WALLDOWNBOUNDARY or self.position.y < WALLUPBOUNDARY: # 425 is the buttom edge of the wall
-            self.velocity.y = -self.velocity.y
+    def wallcollision(self): # for wall collision detection
+        self.velocity.y = -self.velocity.y
 
     
-    def collision(self,bat): # for bat collision detection
+    def paddlecollision(self,bat): # for bat collision detection
         OFFSET = 10
         if bat.rect.centerx > self.rect.centerx: # bat in the right
             if self.velocity.x > 0:
@@ -186,3 +182,4 @@ class PaddleCreature():
         self.fitness = 0
     def fitness_cal(self):
         self.fitness = self.bat.collision + (self.bat.score * 2) # I am giving more priority to the network having for scores 
+        return self.fitness
