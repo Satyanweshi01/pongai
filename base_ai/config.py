@@ -20,7 +20,8 @@ class Config:
 
         # Ball settings
         self.BALL_RADIUS = round(10 * self.SCALE)
-        self.BALL_SPEED = round(5 * self.SCALE)
+        self.BALL_SPEED_SCALE = max(0.4, self.SCALE)
+        self.BALL_SPEED = 5 * self.BALL_SPEED_SCALE
 
         # Screen center
         self.CENTER_X = self.WINDOW_WIDTH // 2

@@ -10,21 +10,21 @@ def get_scale(width, height):
 
 def centerLine(screen,config):
     scale = get_scale(config.WINDOW_WIDTH, config.WINDOW_HEIGHT)
-    centerx = config.WINDOW_WIDTH//2
+    
 
     pygame.draw.line(
         screen,
         (0, 70, 100),
-        (centerx, 0),
-        (centerx, config.WINDOW_HEIGHT),
+        (config.CENTER_X, 0),
+        (config.CENTER_X, config.WINDOW_HEIGHT),
         max(1, round(6 * scale))
     )
 
     pygame.draw.line(
         screen,
         (0, 255, 255),
-        (centerx, 0),
-        (centerx, config.WINDOW_HEIGHT),
+        (config.CENTER_X, 0),
+        (config.CENTER_X, config.WINDOW_HEIGHT),
         max(1, round(2 * scale))
     )
 

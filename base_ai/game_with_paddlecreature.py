@@ -7,8 +7,14 @@ from ui_comp import timerDisplay, scoreBoard, centerLine
 pygame.init()
 
 #window config
-WINDOW_WIDTH = 1200
-WINDOW_HEIGHT = 700
+# WINDOW_WIDTH = 1200
+# WINDOW_HEIGHT = 700
+
+# WINDOW_WIDTH = 800
+# WINDOW_HEIGHT = 400
+
+WINDOW_WIDTH = 150
+WINDOW_HEIGHT = 100
 
 #creating window
 config = Config(WINDOW_WIDTH,WINDOW_HEIGHT)
@@ -36,8 +42,8 @@ redbat = PaddleCreature(
 redbat.brain.weights_load("./weights/goodredbat.npz")
 # Ball object
 ball = Ball(
-    WINDOW_WIDTH // 2 - 10,
-    WINDOW_HEIGHT // 2 - 10,
+    config.CENTER_X,
+    config.CENTER_Y,
     screen, config.BALL_SPEED, config.BALL_RADIUS
 )
 
@@ -83,6 +89,7 @@ while running:
     else:
         ball.velocityconst = 15
 
+    ball.velocityconst = ball.velocityconst * config.BALL_SPEED_SCALE
     ball.velocity_update()
 
 
