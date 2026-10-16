@@ -1,6 +1,7 @@
 import pygame
 from nn_comp import NeuralNetwork
 from game_comp import PaddleCreature,Ball,Bat,text
+from ui_comp import timerDisplay, scoreBoard, centerLine
 
 pygame.init()
 
@@ -23,6 +24,7 @@ redbat = PaddleCreature(785, 180, screen, (255, 50, 50), 20, 100) #redbat home p
 
 #config variables
 BATSENSITIVITY = 15
+
 BATUPBOUNDARY = 0
 BATDOWNBOUNDARY = 346
 
@@ -43,51 +45,9 @@ while running:
     #screen.fill((0,0,0)) #fills the window with the rgb color for each iteration
     screen.fill((0, 0, 0))  # Black background
 
-    # Draw the center line
-    # Outer glow
-    pygame.draw.line(
-    screen, (0, 70, 100),
-    (401, 0), (401, 455), 6
-)
+    centerLine(screen=screen)
+    scoreBoard(screen=screen,player1=bluebat,player2=redbat)
 
-# Bright neon center
-    pygame.draw.line(
-    screen, (0, 255, 255),
-    (401, 0), (401, 455), 2
-)
-    # Scoreboard panel
-    pygame.draw.rect(
-    screen, (12, 18, 32),
-    (250, 5, 302, 55),
-    border_radius=10
-)
-
-# Colored player panels
-    pygame.draw.rect(
-    screen, (15, 42, 58),
-    (258, 9, 90, 47),
-    border_radius=7
-)
-
-    pygame.draw.rect(
-    screen, (55, 24, 35),
-    (454, 9, 90, 47),
-    border_radius=7
-)
-
-# Player labels
-    text("PLAYER 1", screen, (0, 220, 255), 279, 11,
-     font="Arial", size=10, bold=True)
-
-    text("PLAYER 2", screen, (255, 75, 90), 475, 11,
-     font="Arial", size=10, bold=True)
-
-# Scores
-    text(f"{bluebat.bat.score:02}", screen, (0, 240, 255),
-     290, 29, font="Arial", size=20, bold=True)
-
-    text(f"{redbat.bat.score:02}", screen, (255, 80, 95),
-     490, 29, font="Arial", size=20, bold=True)
     # time update
     frame += 1
     if frame == 60:
@@ -101,18 +61,7 @@ while running:
         hour += 1
         minute = 0
     formatted_time = f"{hour:02}:{minute:02}:{sec:02}"
-
-    # Timer
-    timer_font = pygame.font.SysFont("Arial", 16, bold=True)
-    timer_img = timer_font.render(
-        formatted_time, True, (255, 255, 255)
-    )
-    timer_rect = timer_img.get_rect(center=(401, 25))
-    screen.blit(timer_img, timer_rect)
-
-    # VS label
-    text("VS", screen, (130, 150, 175), 395, 39,
-        font="Arial", size=9, bold=True)
+    timerDisplay(screen=screen,formatted_time=formatted_time)
 
     # speed dynamism
     if t_time < 30:
@@ -129,7 +78,6 @@ while running:
         ball.velocityconst = 15
 
     ball.velocity_update()
-    #print(ball.velocityconst)
 
 
     ball.draw()
@@ -203,6 +151,7 @@ while running:
             redbat.bat.rect.y+=BATSENSITIVITY
     
     pygame.display.flip()
+    
     delta_time = clock.tick(60)/1000
     delta_time = max(0.001, min(0.1, delta_time))
 
