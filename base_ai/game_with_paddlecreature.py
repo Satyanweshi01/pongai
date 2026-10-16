@@ -51,8 +51,8 @@ while running:
     #screen.fill((0,0,0)) #fills the window with the rgb color for each iteration
     screen.fill((0, 0, 0))  # Black background
 
-    centerLine(screen=screen,centerx=WINDOW_WIDTH//2,height=WINDOW_HEIGHT)
-    scoreBoard(screen=screen,player1=bluebat,player2=redbat,width=WINDOW_WIDTH,height=WINDOW_WIDTH)
+    centerLine(screen=screen,config=config)
+    scoreBoard(screen=screen,player1=bluebat,player2=redbat,config=config)
 
     # time update
     frame += 1
@@ -67,7 +67,7 @@ while running:
         hour += 1
         minute = 0
     formatted_time = f"{hour:02}:{minute:02}:{sec:02}"
-    timerDisplay(screen=screen,formatted_time=formatted_time,width=WINDOW_WIDTH)
+    timerDisplay(screen=screen,formatted_time=formatted_time,config=config)
     
     # speed dynamism
     if t_time < 30:
