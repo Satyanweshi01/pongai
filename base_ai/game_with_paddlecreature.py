@@ -30,6 +30,10 @@ BATDOWNBOUNDARY = 346
 
 WALLLEFTBOUNDARY = -20
 WALLRIGHTBOUNDARY = 820
+
+WALLUPBOUNDARY = 0
+WALLDOWNBOUNDARY = 435
+
 velocityconst = 5 # initial velocity
 
 # ball object 
@@ -82,7 +86,8 @@ while running:
 
     ball.draw()
     ball.update()
-    ball.change_velocity()
+    if ball.position.y > WALLDOWNBOUNDARY or ball.position.y < WALLUPBOUNDARY: # 425 is the buttom edge of the wall
+        ball.wallcollision()
 
 
     redbat.bat.draw()
@@ -90,10 +95,10 @@ while running:
 
     # collision between ball and bat
     if ball.rect.colliderect(redbat.bat.rect):
-        ball.collision(redbat.bat)
+        ball.paddlecollision(redbat.bat)
 
     if ball.rect.colliderect(bluebat.bat.rect):
-       ball.collision(bluebat.bat)
+       ball.paddlecollision(bluebat.bat)
 
 
     #boundary check

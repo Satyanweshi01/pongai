@@ -1,5 +1,6 @@
 import pygame
 from game_comp import text
+
 def centerLine(screen):
     # Draw the center line
     # Outer glow
