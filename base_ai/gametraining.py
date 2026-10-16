@@ -1,4 +1,5 @@
 import pygame
+from random import choice,random
 from config import Config
 from nn_comp import NeuralNetwork
 from game_comp import PaddleCreature,Ball,Bat,text
@@ -18,7 +19,7 @@ WINDOW_HEIGHT = 700
 
 #creating window
 screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-pygame.display.set_caption("Pong Ai") 
+pygame.display.set_caption("Pong Ai Training") 
 
 #creating clock to control the rendering
 clock = pygame.time.Clock()
@@ -28,6 +29,9 @@ running = True
 delta_time = 0.1
 
 class GameInstance:
+    """each of the gameinstance object has a redbat to train and each of the redbat has brain which is a neural network object
+    Here that neural network is the DNA I have to work with.
+    """
     def __init__(self,width,height,screen):
         self.config = Config(width,height)#Config(650,350)
         self.screen = screen
@@ -44,13 +48,16 @@ class GameInstance:
             self.config.WINDOW_HEIGHT // 2 - self.config.BAT_HEIGHT // 2,
             self.screen, (255, 50, 50), self.config.BAT_WIDTH, self.config.BAT_HEIGHT
         )
-
+        self.fitness = 0
         # Ball object
         self.ball = Ball(
             self.config.CENTER_X,
             self.config.CENTER_Y,
             self.screen, self.config.BALL_SPEED, self.config.BALL_RADIUS
         )
+    def fitness_cal(self):
+        self.fitness = self.redbat.fitness_cal()
+        return self.fitness
     def gamestate_update(self):
         self.frame = 0
         self.hour = 0 
@@ -138,11 +145,59 @@ class GameInstance:
         elif redbat_decision == 2:
             if self.redbat.bat.rect.y < self.config.BAT_BOTTOM_BOUNDARY:
                 self.redbat.bat.rect.y+=self.config.BAT_SENSITIVITY
+    def crossover(ParentA:GameInstance,ParentB:GameInstance):
+        child = GameInstance(1200,700)
 
-gameinstancelist = []
-for i in range(5):
-    gameinstancelist.append(GameInstance(1200,700,screen))
+        child.redbat.brain.hiddenlayer1.weights = choice([ParentA.redbat.brain.hiddenlayer1.weights,ParentB.redbat.brain.hiddenlayer1.weights])
+        child.redbat.brain.hiddenlayer1.biases = choice([ParentA.redbat.brain.hiddenlayer1.biases,ParentB.redbat.brain.hiddenlayer1.biases])
+        child.redbat.brain.outputlayer.weights = choice([ParentA.redbat.brain.outputlayer1.weights,ParentB.redbat.brain.outputlayer1.weights])
+        child.redbat.brain.outputlayer.biases = choice([ParentA.redbat.brain.outputlayer1.biases,ParentB.redbat.brain.outputlayer1.biases])
+        return child
+    def mutate(self,mutation_rate):
+        for array in [self.redbat.brain.hiddenlayer1.weights,self.redbat.brain.hiddenlayer1.biases,self.redbat.brain.outputlayer.weights,self.redbat.brain.outputlayer.biases]:
+            for element in range(len(array)):
+                prob = random()
+                if prob <= mutation_rate:
+                    array[element] += array[element]*choice([+mutation_rate,-mutation_rate])
 
+class GATraining:
+    def __init__(self,population_size:int,mutation_rate:int):
+        self.population_size = population_size
+        self.mutation_rate = mutation_rate
+        self.gameinstances = []
+        for i in range(population_size):
+            self.gameinstances.append(GameInstance(1200,700,screen))
+    
+    def fitness_cal(self):
+        # this calculates the fitness of the gameinstances by judging it's redbat Paddlecreature 
+        total_fitness = 0
+        for gameinstance in self.gameinstances:
+            total_fitness += gameinstance.fitness_cal()
+        # now calculating normalized fitness
+        for gameinstance in self.gameinstances:
+            gameinstance.fitness = gameinstance.fitness/total_fitness
+            print(gameinstance.fitness)
+        
+    def selection(self):
+        childgameinstances = []
+        self.fitness_cal()
+        for _ in range(self.population_size):
+            def get_parent():
+                while True:
+                    parent = choice(self.gameinstances)
+                    prob = random()
+                    if prob<=parentA.fitness:
+                        return parent
+            ParentA = get_parent()
+            ParentB = get_parent()
+            child = GameInstance.crossover(ParentA,ParentB)
+            child.mutate(self.mutation_rate)
+            childgameinstances.append(child)
+
+        # after selection
+        self.gameinstances = childgameinstances
+    def reproduction(self):
+        pass
 
 while running:
     # to end the game loop
@@ -152,8 +207,6 @@ while running:
 
     screen.fill((0, 0, 0))  
 
-    for gameinstance in gameinstancelist:
-        gameinstance.gamestate_update()
 
     
     pygame.display.flip()
