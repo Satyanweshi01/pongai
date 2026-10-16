@@ -1,4 +1,5 @@
 import pygame
+from config import Config
 from nn_comp import NeuralNetwork
 from game_comp import PaddleCreature,Ball,Bat,text
 from ui_comp import timerDisplay, scoreBoard, centerLine
@@ -10,7 +11,8 @@ WINDOW_WIDTH = 1200
 WINDOW_HEIGHT = 700
 
 #creating window
-screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+config = Config(WINDOW_WIDTH,WINDOW_HEIGHT)
+screen = pygame.display.set_mode((config.WINDOW_WIDTH, config.WINDOW_HEIGHT))
 pygame.display.set_caption("Pong Ai") 
 
 #creating clock to control the rendering
@@ -20,39 +22,23 @@ clock = pygame.time.Clock()
 running = True
 delta_time = 0.1
 
-#config variables
-BAT_WIDTH = 20
-BAT_HEIGHT = 100
-BAT_SENSITIVITY = 15
-
-BAT_UP_BOUNDARY = 0
-BAT_DOWN_BOUNDARY = WINDOW_HEIGHT - BAT_HEIGHT
-
-WALL_LEFT_BOUNDARY = -20
-WALL_RIGHT_BOUNDARY = WINDOW_WIDTH 
-
-WALL_UP_BOUNDARY = 0
-WALL_DOWN_BOUNDARY = WINDOW_HEIGHT 
-
-velocityconst = 5 # initial velocity
-
 # Bat objects
 bluebat = PaddleCreature(
-    0, WINDOW_HEIGHT // 2 - BAT_HEIGHT // 2,
-    screen, (0, 100, 255), BAT_WIDTH, BAT_HEIGHT
+    0, WINDOW_HEIGHT // 2 - config.BAT_HEIGHT // 2,
+    screen, (0, 100, 255), config.BAT_WIDTH, config.BAT_HEIGHT
 )
-
+bluebat.brain.weights_load("./weights/goodbluebat.npz")
 redbat = PaddleCreature(
-    WINDOW_WIDTH - BAT_WIDTH,
-    WINDOW_HEIGHT // 2 - BAT_HEIGHT // 2,
-    screen, (255, 50, 50), BAT_WIDTH, BAT_HEIGHT
+    WINDOW_WIDTH - config.BAT_WIDTH,
+    WINDOW_HEIGHT // 2 - config.BAT_HEIGHT // 2,
+    screen, (255, 50, 50), config.BAT_WIDTH, config.BAT_HEIGHT
 )
-
+redbat.brain.weights_load("./weights/goodredbat.npz")
 # Ball object
 ball = Ball(
     WINDOW_WIDTH // 2 - 10,
     WINDOW_HEIGHT // 2 - 10,
-    screen, velocityconst, 10
+    screen, config.BALL_SPEED, config.BALL_RADIUS
 )
 
 frame = 0
@@ -82,7 +68,7 @@ while running:
         minute = 0
     formatted_time = f"{hour:02}:{minute:02}:{sec:02}"
     timerDisplay(screen=screen,formatted_time=formatted_time,width=WINDOW_WIDTH)
-
+    
     # speed dynamism
     if t_time < 30:
         ball.velocityconst = 5 
@@ -102,7 +88,7 @@ while running:
 
     ball.draw()
     ball.update()
-    if ball.position.y > WALL_DOWN_BOUNDARY or ball.position.y < WALL_UP_BOUNDARY: # 425 is the buttom edge of the wall
+    if ball.position.y > config.WALL_BOTTOM_BOUNDARY or ball.position.y < config.WALL_TOP_BOUNDARY: # 425 is the buttom edge of the wall
         ball.wallcollision()
 
 
@@ -118,10 +104,10 @@ while running:
 
 
     #boundary check
-    if ball.position.x > WALL_RIGHT_BOUNDARY: #820 is the right edge of the screen
+    if ball.position.x > config.WALL_RIGHT_BOUNDARY: #820 is the right edge of the screen
         bluebat.bat.score+=1
         ball.restart()
-    if ball.position.x < WALL_LEFT_BOUNDARY:
+    if ball.position.x < config.WALL_LEFT_BOUNDARY:
         redbat.bat.score+=1
         ball.restart()
 
@@ -146,11 +132,11 @@ while running:
     bluebat_inputs = [ball.position.x,ball.position.y,ball.velocity.x,ball.velocity.y,bluebat.bat.rect.x,bluebat.bat.rect.y]
     bluebat_decision = bluebat.brain.forward(bluebat_inputs)
     if bluebat_decision == 1:
-        if bluebat.bat.rect.y > BAT_UP_BOUNDARY:
-            bluebat.bat.rect.y-=BAT_SENSITIVITY
+        if bluebat.bat.rect.y > config.BAT_TOP_BOUNDARY:
+            bluebat.bat.rect.y-=config.BAT_SENSITIVITY
     elif bluebat_decision == 2:
-        if bluebat.bat.rect.y < BAT_DOWN_BOUNDARY:
-            bluebat.bat.rect.y+=BAT_SENSITIVITY
+        if bluebat.bat.rect.y < config.BAT_BOTTOM_BOUNDARY:
+            bluebat.bat.rect.y+=config.BAT_SENSITIVITY
 
     #for red bat (now it is controlled by the nn)
     # if keys[pygame.K_UP]:
@@ -165,11 +151,11 @@ while running:
     redbat_inputs = [ball.position.x,ball.position.y,ball.velocity.x,ball.velocity.y,redbat.bat.rect.x,redbat.bat.rect.y]
     redbat_decision = redbat.brain.forward(redbat_inputs)
     if redbat_decision == 1:
-        if redbat.bat.rect.y > BAT_UP_BOUNDARY:
-            redbat.bat.rect.y-=BAT_SENSITIVITY
+        if redbat.bat.rect.y > config.BAT_TOP_BOUNDARY:
+            redbat.bat.rect.y-=config.BAT_SENSITIVITY
     elif redbat_decision == 2:
-        if redbat.bat.rect.y < BAT_DOWN_BOUNDARY:
-            redbat.bat.rect.y+=BAT_SENSITIVITY
+        if redbat.bat.rect.y < config.BAT_BOTTOM_BOUNDARY:
+            redbat.bat.rect.y+=config.BAT_SENSITIVITY
     
     pygame.display.flip()
     
