@@ -182,3 +182,4 @@ class PaddleCreature():
         self.fitness = 0
     def fitness_cal(self):
         self.fitness = self.bat.collision + (self.bat.score * 2) # I am giving more priority to the network having for scores 
+        return self.fitness

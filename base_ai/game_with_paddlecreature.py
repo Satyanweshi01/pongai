@@ -7,14 +7,14 @@ from ui_comp import timerDisplay, scoreBoard, centerLine
 pygame.init()
 
 #window config
-# WINDOW_WIDTH = 1200
-# WINDOW_HEIGHT = 700
+WINDOW_WIDTH = 1200
+WINDOW_HEIGHT = 700
 
 # WINDOW_WIDTH = 800
 # WINDOW_HEIGHT = 400
 
-WINDOW_WIDTH = 150
-WINDOW_HEIGHT = 100
+# WINDOW_WIDTH = 150
+# WINDOW_HEIGHT = 100
 
 #creating window
 config = Config(WINDOW_WIDTH,WINDOW_HEIGHT)

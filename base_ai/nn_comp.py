@@ -5,15 +5,10 @@ class Layer_Dense:
             self.weights = 0.10 * np.random.randn(n_inputs, n_perceptron)
             self.biases = np.zeros((1,n_perceptron)) # this gives [0,0, ...., 0]
         def relu_forward(self,inputs):
-            output = np.dot(inputs,self.weights) + self.biases
-            
-            self.output = []
-            for i in output:
-                suboutput = []
-                for j in i:
-                    suboutput.append(max(0,j))
-                self.output.append(suboutput)
-
+            inputs = np.asarray(inputs, dtype=float).reshape(1, -1)
+            self.output = np.maximum(
+                0, np.dot(inputs, self.weights) + self.biases
+            )
 class Output_Layer_Dense:
         def __init__(self, n_inputs, n_perceptron):
             self.weights = 0.10 * np.random.randn(n_inputs, n_perceptron)
@@ -34,11 +29,11 @@ class NeuralNetwork:
         np.savez(name, hiddenlayer1weights = self.hiddenlayer1.weights, hiddenlayer1biases = self.hiddenlayer1.biases, outputlayerweights = self.outputlayer.weights, outputlayerbiases = self.outputlayer.biases)
 
     def weights_load(self,npz_file):
-        b = np.load(npz_file)
-        self.hiddenlayer1.weights = b['hiddenlayer1weights']
-        self.hiddenlayer1.biases = b['hiddenlayer1biases']
-        self.outputlayer.weights = b['outputlayerweights']
-        self.outputlayer.biases = b['outputlayerbiases']
+        with np.load(npz_file) as data:
+            self.hiddenlayer1.weights = data["hiddenlayer1weights"].copy()
+            self.hiddenlayer1.biases = data["hiddenlayer1biases"].copy()
+            self.outputlayer.weights = data["outputlayerweights"].copy()
+            self.outputlayer.biases = data["outputlayerbiases"].copy()
 
     def forward(self,inputs):
         self.hiddenlayer1.relu_forward(inputs)
