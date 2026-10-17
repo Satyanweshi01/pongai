@@ -64,12 +64,24 @@ class GameInstance:
 
         self.fitness = 0
         self.raw_fitness = 0
+        self.total_miss_error = 0.0
 
         self.sim_frames = 0
         self.t_time = 0
 
     def fitness_cal(self):
-        self.fitness = self.redbat.fitness_cal(self.bluebat.bat) # passing bluebat's bat as opponent
+        # rewarding for hits
+        hit_reward = 3.0 * self.redbat.bat.collision
+
+        # Reward for sccoring
+        score_reward = 10.0 * self.redbat.bat.score
+
+        # penalty for missing the ball
+        miss_penalty = -3.0 * self.bluebat.bat.score
+
+        # distance penalty
+        distance_penalty = -2.0 * self.total_miss_error
+        self.fitness = hit_reward + score_reward + miss_penalty + distance_penalty
         return self.fitness
 
     def gamestate_update(self):
@@ -114,6 +126,10 @@ class GameInstance:
         #boundary check
         if self.ball.position.x > self.config.WALL_RIGHT_BOUNDARY: #820 is the right edge of the screen
             self.bluebat.bat.score+=1
+            # calculation of the distance error
+            error = abs(self.ball.position.y - self.redbat.bat.rect.centery) / self.config.WINDOW_HEIGHT
+            self.total_miss_error+= error
+
             self.ball.restart()
         if self.ball.position.x < self.config.WALL_LEFT_BOUNDARY:
             self.redbat.bat.score+=1
