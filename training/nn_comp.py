@@ -3,7 +3,7 @@ import numpy as np
 class Layer_Dense:
         def __init__(self, n_inputs, n_perceptron):
             self.weights = 0.10 * np.random.randn(n_inputs, n_perceptron)
-            self.biases = np.zeros((1,n_perceptron)) # this gives [0,0, ...., 0]
+            self.biases = np.random.normal(0, 0.05, (1, n_perceptron)) # getting random biases
         def relu_forward(self,inputs):
             inputs = np.asarray(inputs, dtype=float).reshape(1, -1)
             self.output = np.maximum(
@@ -12,7 +12,7 @@ class Layer_Dense:
 class Output_Layer_Dense:
         def __init__(self, n_inputs, n_perceptron):
             self.weights = 0.10 * np.random.randn(n_inputs, n_perceptron)
-            self.biases = np.zeros((1,n_perceptron)) # this gives [0,0, ...., 0]
+            self.biases = np.random.normal(0, 0.05, (1, n_perceptron)) # getting random biases
         def softmax_forward(self,inputs):
             #print(inputs)
             #print(self.weights)

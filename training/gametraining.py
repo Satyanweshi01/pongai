@@ -207,11 +207,17 @@ class GameInstance:
 
         return child
     def mutate(self,mutation_rate):
-        for array in [self.redbat.brain.hiddenlayer1.weights,self.redbat.brain.hiddenlayer1.biases,self.redbat.brain.outputlayer.weights,self.redbat.brain.outputlayer.biases]:
-            mask = np.random.random(array.shape) < mutation_rate
-            array[mask] += np.random.normal(
-                0, 0.1, size=np.count_nonzero(mask)
-            )
+        for weights in [self.redbat.brain.hiddenlayer1.weights, self.redbat.brain.outputlayer.weights]:
+            mask = np.random.random(weights.shape) < mutation_rate
+            weights[mask] += np.random.normal(0, 0.1, size= np.count_nonzero(mask))
+            np.clip(weights, -3.0, 3.0, out = weights)
+
+        bias_mutation_rate = max(0.20, mutation_rate*3)
+        for biases in [self.redbat.brain.hiddenlayer1.biases, self.redbat.brain.outputlayer.biases]:
+            mask = np.random.random(biases.shape) < bias_mutation_rate
+            biases[mask] += np.random.normal(0, 0.1, size= np.count_nonzero(mask))
+            np.clip(biases, -3.0, 3.0, out = biases) 
+
 
 
 class GATraining:
