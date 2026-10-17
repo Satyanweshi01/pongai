@@ -196,18 +196,22 @@ class GameInstance:
                 0, 0.1, size=np.count_nonzero(mask)
             )
 
+
 class GATraining:
-    def __init__(self,population_size:int,mutation_rate:int,screen,gameplay):
+    def __init__(self,population_size:int,mutation_rate:int,screen):
         self.population_size = population_size
         self.mutation_rate = mutation_rate
         self.screen = screen
         self.gen = 0
-        self.start = time.perf_counter()
         self.gameinstances = []
         for i in range(population_size):
             self.gameinstances.append(GameInstance(1200,700,screen))
 
-        self.GAMEPLAY = gameplay
+        self.steps_per_generation = 3600  # 60 seconds at 60 simulation steps/sec
+        self.steps_this_generation = 0
+
+        self.best_to_render = self.gameinstances[0]
+        self.simulation_steps_per_frame = 1
 
         self.generation_history = []
         self.average_fitness_history = []
@@ -218,9 +222,9 @@ class GATraining:
         self.fig, self.ax = plt.subplots(figsize=(9, 5))
         self.line, = self.ax.plot([], [], "b-o", markersize=4)
 
-        self.ax.set_title("Average Raw Fitness per Generation")
+        self.ax.set_title("Average Fitness per Generation")
         self.ax.set_xlabel("Generation")
-        self.ax.set_ylabel("Average Raw Fitness")
+        self.ax.set_ylabel("Average Fitness")
         self.ax.grid(True, alpha=0.3)
 
         plt.show(block=False)
@@ -244,7 +248,7 @@ class GATraining:
 
         print(
             f"Generation: {self.gen} | "
-            f"Average raw fitness: {average_fitness:.4f} | "
+            f"Average fitness: {average_fitness:.4f} | "
             f"Best raw fitness: {max(raw_fitness_values):.4f}"
         )
 
@@ -300,24 +304,26 @@ class GATraining:
 
         # after selection
         self.gameinstances = childgameinstances
+        self.best_to_render = self.gameinstances[0] # storing the elite to render
+
 
     def reproduction(self):
-        end = time.perf_counter()
+        # Advance every individual's simulation
+        for _ in range(self.simulation_steps_per_frame):
+            for gameinstance in self.gameinstances:
+                gameinstance.gamestate_update()
 
-        # Evaluate and evolve after the evaluation period
-        if end - self.start >= self.GAMEPLAY:
+            self.steps_this_generation += 1
+
+        # Finish the generation after the fixed step budget
+        if self.steps_this_generation >= self.steps_per_generation:
             self.selection()
-            self.start = time.perf_counter()
+            self.steps_this_generation = 0
 
-        # Simulate every individual without rendering
-        for gameinstance in self.gameinstances:
-            gameinstance.gamestate_update()
-
-        # Render only the elite (first individual)
+        # Render only one game
         self.screen.fill((0, 0, 0))
 
-        best = self.gameinstances[0]
-        best.draw()
+        self.best_to_render.draw() # rendering the elite
 
 
 
@@ -334,7 +340,7 @@ class GATraining:
         self.fig.canvas.flush_events()
         plt.pause(0.001)
 
-ga = GATraining(1000,0.01,screen,60)
+ga = GATraining(1000,0.01,screen)
 
 while running:
     # to end the game loop
