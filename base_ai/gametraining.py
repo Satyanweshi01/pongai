@@ -41,7 +41,7 @@ class GameInstance:
             0, self.config.WINDOW_HEIGHT // 2 - self.config.BAT_HEIGHT // 2,
             self.screen, (0, 100, 255), self.config.BAT_WIDTH, self.config.BAT_HEIGHT
         )
-        self.bluebat.brain.weights_load("./weights/goodbluebat.npz") # static weight load  
+        self.bluebat.brain.weights_load("./goodbluebat.npz") # static weight load  
 
         self.redbat = PaddleCreature(
             self.config.WINDOW_WIDTH - self.config.BAT_WIDTH,
@@ -55,9 +55,11 @@ class GameInstance:
             self.config.CENTER_Y,
             self.screen, self.config.BALL_SPEED, self.config.BALL_RADIUS
         )
+
     def fitness_cal(self):
         self.fitness = self.redbat.fitness_cal()
         return self.fitness
+
     def gamestate_update(self):
         self.frame = 0
         self.hour = 0 
@@ -84,15 +86,15 @@ class GameInstance:
         # timerDisplay(screen=self.screen,formatted_time=formatted_time,config=self.config)
 
         # speed dynamism
-        if self.t_time < 30:
+        if self.t_time < 3:
             self.ball.velocityconst = 5 
-        elif self.t_time < 60:
+        elif self.t_time < 6:
             self.ball.velocityconst = 7 
-        elif self.t_time < 120:
+        elif self.t_time < 12:
             self.ball.velocityconst = 9
-        elif self.t_time < 180:
+        elif self.t_time < 18:
             self.ball.velocityconst = 11
-        elif self.t_time < 300:
+        elif self.t_time < 30:
             self.ball.velocityconst = 13
         else:
             self.ball.velocityconst = 15
@@ -145,13 +147,13 @@ class GameInstance:
         elif redbat_decision == 2:
             if self.redbat.bat.rect.y < self.config.BAT_BOTTOM_BOUNDARY:
                 self.redbat.bat.rect.y+=self.config.BAT_SENSITIVITY
-    def crossover(ParentA,ParentB):
-        child = GameInstance(1200,700)
+    def crossover(ParentA,ParentB,screen):
+        child = GameInstance(1200,700,screen)
 
         child.redbat.brain.hiddenlayer1.weights = choice([ParentA.redbat.brain.hiddenlayer1.weights,ParentB.redbat.brain.hiddenlayer1.weights])
         child.redbat.brain.hiddenlayer1.biases = choice([ParentA.redbat.brain.hiddenlayer1.biases,ParentB.redbat.brain.hiddenlayer1.biases])
-        child.redbat.brain.outputlayer.weights = choice([ParentA.redbat.brain.outputlayer1.weights,ParentB.redbat.brain.outputlayer1.weights])
-        child.redbat.brain.outputlayer.biases = choice([ParentA.redbat.brain.outputlayer1.biases,ParentB.redbat.brain.outputlayer1.biases])
+        child.redbat.brain.outputlayer.weights = choice([ParentA.redbat.brain.outputlayer.weights,ParentB.redbat.brain.outputlayer.weights])
+        child.redbat.brain.outputlayer.biases = choice([ParentA.redbat.brain.outputlayer.biases,ParentB.redbat.brain.outputlayer.biases])
         return child
     def mutate(self,mutation_rate):
         for array in [self.redbat.brain.hiddenlayer1.weights,self.redbat.brain.hiddenlayer1.biases,self.redbat.brain.outputlayer.weights,self.redbat.brain.outputlayer.biases]:
@@ -161,9 +163,10 @@ class GameInstance:
                     array[element] += array[element]*choice([+mutation_rate,-mutation_rate])
 
 class GATraining:
-    def __init__(self,population_size:int,mutation_rate:int):
+    def __init__(self,population_size:int,mutation_rate:int,screen):
         self.population_size = population_size
         self.mutation_rate = mutation_rate
+        self.screen = screen
         self.gen = 0
         self.start = time.perf_counter()
         self.gameinstances = []
@@ -188,28 +191,31 @@ class GATraining:
                 while True:
                     parent = choice(self.gameinstances)
                     prob = random()
-                    if prob<=parentA.fitness:
+                    if prob<=parent.fitness:
                         return parent
             ParentA = get_parent()
             ParentB = get_parent()
-            child = GameInstance.crossover(ParentA,ParentB)
+            child = GameInstance.crossover(ParentA,ParentB,self.screen)
             child.mutate(self.mutation_rate)
             childgameinstances.append(child)
 
         # after selection
         self.gameinstances = childgameinstances
         childgameinstances = sorted(childgameinstances,key = lambda x: x.fitness)
-        childgameinstances[0].redbat.weights_save("bestweight")
+        childgameinstances[0].redbat.brain.weights_save("bestweight")
+        print(f"The best fitness of {self.gen} : {childgameinstances[0].fitness}")
     def reproduction(self):
         end = time.perf_counter()
-        if end - start > 60:
+        GAMEPLAY = 10
+        if end - self.start > GAMEPLAY:
+            self.gen += 1
             self.selection()
             self.start = time.perf_counter()
-
+        print(end-self.start)
         for gameinstance in self.gameinstances:
             gameinstance.gamestate_update()
 
-ga = GATraining(10,0.01)
+ga = GATraining(10,0.01,screen)
 
 while running:
     # to end the game loop
