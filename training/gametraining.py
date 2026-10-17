@@ -170,40 +170,44 @@ class GameInstance:
         self.redbat.bat.draw()
         self.bluebat.bat.draw()
         
-    def crossover(ParentA,ParentB,screen):
+    def clone(ParentA,screen):
         child = GameInstance(1200,700,screen)
 
-        child.redbat.brain.hiddenlayer1.weights = np.where(
-            np.random.random(
-                ParentA.redbat.brain.hiddenlayer1.weights.shape
-            ) < 0.5,
-            ParentA.redbat.brain.hiddenlayer1.weights,
-            ParentB.redbat.brain.hiddenlayer1.weights
-        ).copy()
+        # child.redbat.brain.hiddenlayer1.weights = np.where(
+        #     np.random.random(
+        #         ParentA.redbat.brain.hiddenlayer1.weights.shape
+        #     ) < 0.5,
+        #     ParentA.redbat.brain.hiddenlayer1.weights,
+        #     ParentB.redbat.brain.hiddenlayer1.weights
+        # ).copy()
 
-        child.redbat.brain.hiddenlayer1.biases = np.where(
-            np.random.random(
-                ParentA.redbat.brain.hiddenlayer1.biases.shape
-            ) < 0.5,
-            ParentA.redbat.brain.hiddenlayer1.biases,
-            ParentB.redbat.brain.hiddenlayer1.biases
-        ).copy()
+        # child.redbat.brain.hiddenlayer1.biases = np.where(
+        #     np.random.random(
+        #         ParentA.redbat.brain.hiddenlayer1.biases.shape
+        #     ) < 0.5,
+        #     ParentA.redbat.brain.hiddenlayer1.biases,
+        #     ParentB.redbat.brain.hiddenlayer1.biases
+        # ).copy()
 
-        child.redbat.brain.outputlayer.weights = np.where(
-            np.random.random(
-                ParentA.redbat.brain.outputlayer.weights.shape
-            ) < 0.5,
-            ParentA.redbat.brain.outputlayer.weights,
-            ParentB.redbat.brain.outputlayer.weights
-        ).copy()
+        # child.redbat.brain.outputlayer.weights = np.where(
+        #     np.random.random(
+        #         ParentA.redbat.brain.outputlayer.weights.shape
+        #     ) < 0.5,
+        #     ParentA.redbat.brain.outputlayer.weights,
+        #     ParentB.redbat.brain.outputlayer.weights
+        # ).copy()
 
-        child.redbat.brain.outputlayer.biases = np.where(
-            np.random.random(
-                ParentA.redbat.brain.outputlayer.biases.shape
-            ) < 0.5,
-            ParentA.redbat.brain.outputlayer.biases,
-            ParentB.redbat.brain.outputlayer.biases
-        ).copy()
+        # child.redbat.brain.outputlayer.biases = np.where(
+        #     np.random.random(
+        #         ParentA.redbat.brain.outputlayer.biases.shape
+        #     ) < 0.5,
+        #     ParentA.redbat.brain.outputlayer.biases,
+        #     ParentB.redbat.brain.outputlayer.biases
+        # ).copy() this code just randomly picks the parent weights and combines them to create a child that is fine for other scenerio but for case of neural network it breaks them
+        child.redbat.brain.hiddenlayer1.weights = ParentA.redbat.brain.hiddenlayer1.weights.copy()
+        child.redbat.brain.hiddenlayer1.biases = ParentA.redbat.brain.hiddenlayer1.biases.copy()
+        child.redbat.brain.outputlayer.weights = ParentA.redbat.brain.outputlayer.weights.copy()
+        child.redbat.brain.outputlayer.biases = ParentA.redbat.brain.outputlayer.biases.copy()
 
         return child
     def mutate(self,mutation_rate):
@@ -304,11 +308,7 @@ class GATraining:
         self.update_graph()
         self.gen += 1
 
-        elite = GameInstance.crossover( # adding elitism to the GA- Picking up the best individual from the previous generation and adding it to the current generation without mutation
-            best_individual,
-            best_individual,
-            self.screen
-        )
+        elite = GameInstance.clone(best_individual,self.screen) # straight way cloning the parent to avoid the crossover distruction and making the process mutation only
         childgameinstances.append(elite)
 
 
@@ -322,9 +322,10 @@ class GATraining:
                     contestants,
                     key=lambda individual: individual.raw_fitness
                 )
-            ParentA = get_parent()
-            ParentB = get_parent()
-            child = GameInstance.crossover(ParentA,ParentB,self.screen)
+            # ParentA = get_parent()
+            # ParentB = get_parent()
+            # child = GameInstance.crossover(ParentA,ParentB,self.screen)
+            child = GameInstance.clone(get_parent(),self.screen) # straight way cloning the parent to avoid the crossover distruction and making the process mutation only
             child.mutate(self.mutation_rate)
             childgameinstances.append(child)
 
