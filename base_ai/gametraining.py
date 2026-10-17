@@ -1,13 +1,16 @@
 import pygame
-from random import choice,random
-from config import Config
-from game_comp import PaddleCreature,Ball,Bat,text
-from ui_comp import timerDisplay, scoreBoard, centerLine
 import time
 import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 import copy 
+import numpy as np
+
+from random import choice,random
+from config import Config
+from game_comp import PaddleCreature,Ball,Bat,text
+from ui_comp import timerDisplay, scoreBoard, centerLine
+
 
 pygame.init()
 
@@ -162,33 +165,45 @@ class GameInstance:
     def crossover(ParentA,ParentB,screen):
         child = GameInstance(1200,700,screen)
 
-        child.redbat.brain.hiddenlayer1.weights = choice([
+        child.redbat.brain.hiddenlayer1.weights = np.where(
+            np.random.random(
+                ParentA.redbat.brain.hiddenlayer1.weights.shape
+            ) < 0.5,
             ParentA.redbat.brain.hiddenlayer1.weights,
             ParentB.redbat.brain.hiddenlayer1.weights
-        ]).copy()
+        ).copy()
 
-        child.redbat.brain.hiddenlayer1.biases = choice([
+        child.redbat.brain.hiddenlayer1.biases = np.where(
+            np.random.random(
+                ParentA.redbat.brain.hiddenlayer1.biases.shape
+            ) < 0.5,
             ParentA.redbat.brain.hiddenlayer1.biases,
             ParentB.redbat.brain.hiddenlayer1.biases
-        ]).copy()
+        ).copy()
 
-        child.redbat.brain.outputlayer.weights = choice([
+        child.redbat.brain.outputlayer.weights = np.where(
+            np.random.random(
+                ParentA.redbat.brain.outputlayer.weights.shape
+            ) < 0.5,
             ParentA.redbat.brain.outputlayer.weights,
             ParentB.redbat.brain.outputlayer.weights
-        ]).copy()
+        ).copy()
 
-        child.redbat.brain.outputlayer.biases = choice([
+        child.redbat.brain.outputlayer.biases = np.where(
+            np.random.random(
+                ParentA.redbat.brain.outputlayer.biases.shape
+            ) < 0.5,
             ParentA.redbat.brain.outputlayer.biases,
             ParentB.redbat.brain.outputlayer.biases
-        ]).copy()
+        ).copy()
 
         return child
     def mutate(self,mutation_rate):
         for array in [self.redbat.brain.hiddenlayer1.weights,self.redbat.brain.hiddenlayer1.biases,self.redbat.brain.outputlayer.weights,self.redbat.brain.outputlayer.biases]:
-            for element in range(len(array)):
-                prob = random()
-                if prob <= mutation_rate:
-                    array[element] += array[element]*choice([+mutation_rate,-mutation_rate])
+            mask = np.random.random(array.shape) < mutation_rate
+            array[mask] += np.random.normal(
+                0, 0.1, size=np.count_nonzero(mask)
+            )
 
 class GATraining:
     def __init__(self,population_size:int,mutation_rate:int,screen,gameplay):
@@ -316,7 +331,7 @@ class GATraining:
         self.fig.canvas.flush_events()
         plt.pause(0.001)
 
-ga = GATraining(100,0.01,screen,10)
+ga = GATraining(100,0.01,screen,60)
 
 while running:
     # to end the game loop
