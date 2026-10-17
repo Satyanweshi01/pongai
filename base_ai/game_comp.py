@@ -180,6 +180,13 @@ class PaddleCreature():
         self.brain = NeuralNetwork() # contains all the weights that will be modified during evolutionary training
         self.bat = Bat(x, y, screen, color, width, height) # contains details which needed for fitness function
         self.fitness = 0
-    def fitness_cal(self,oppo_bat):
-        self.fitness = self.bat.collision + (self.bat.score * 2) - oppo_bat.score # I am giving more priority to the network having for scores 
+
+    # def fitness_cal(self, oppo_bat):
+    #     self.fitness = (10 * self.bat.score - 10 * oppo_bat.score + 0.5 * self.bat.collision)
+    #     return self.fitness
+
+    def fitness_cal(self, oppo_bat):
+        score_difference = self.bat.score - oppo_bat.score
+        self.fitness = ( 10 * score_difference + 0.5 * self.bat.collision )
+
         return self.fitness

@@ -4,7 +4,10 @@ from config import Config
 from game_comp import PaddleCreature,Ball,Bat,text
 from ui_comp import timerDisplay, scoreBoard, centerLine
 import time
+import matplotlib
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
+import copy 
 
 pygame.init()
 
@@ -141,7 +144,14 @@ class GameInstance:
                 self.bluebat.bat.rect.y+=self.config.BAT_SENSITIVITY
 
         
-        redbat_inputs = [self.ball.position.x,self.ball.position.y,self.ball.velocity.x,self.ball.velocity.y,self.redbat.bat.rect.x,self.redbat.bat.rect.y]
+        redbat_inputs = [ # sending normalized inputs to the redbat's neural network
+            self.ball.position.x / self.config.WINDOW_WIDTH,
+            self.ball.position.y / self.config.WINDOW_HEIGHT,
+            self.ball.velocity.x / 15,
+            self.ball.velocity.y / 15,
+            self.redbat.bat.rect.x / self.config.WINDOW_WIDTH,
+            self.redbat.bat.rect.y / self.config.WINDOW_HEIGHT
+        ]
         redbat_decision = self.redbat.brain.forward(redbat_inputs)
         if redbat_decision == 1:
             if self.redbat.bat.rect.y > self.config.BAT_TOP_BOUNDARY:
@@ -152,10 +162,26 @@ class GameInstance:
     def crossover(ParentA,ParentB,screen):
         child = GameInstance(1200,700,screen)
 
-        child.redbat.brain.hiddenlayer1.weights = choice([ParentA.redbat.brain.hiddenlayer1.weights,ParentB.redbat.brain.hiddenlayer1.weights])
-        child.redbat.brain.hiddenlayer1.biases = choice([ParentA.redbat.brain.hiddenlayer1.biases,ParentB.redbat.brain.hiddenlayer1.biases])
-        child.redbat.brain.outputlayer.weights = choice([ParentA.redbat.brain.outputlayer.weights,ParentB.redbat.brain.outputlayer.weights])
-        child.redbat.brain.outputlayer.biases = choice([ParentA.redbat.brain.outputlayer.biases,ParentB.redbat.brain.outputlayer.biases])
+        child.redbat.brain.hiddenlayer1.weights = choice([
+            ParentA.redbat.brain.hiddenlayer1.weights,
+            ParentB.redbat.brain.hiddenlayer1.weights
+        ]).copy()
+
+        child.redbat.brain.hiddenlayer1.biases = choice([
+            ParentA.redbat.brain.hiddenlayer1.biases,
+            ParentB.redbat.brain.hiddenlayer1.biases
+        ]).copy()
+
+        child.redbat.brain.outputlayer.weights = choice([
+            ParentA.redbat.brain.outputlayer.weights,
+            ParentB.redbat.brain.outputlayer.weights
+        ]).copy()
+
+        child.redbat.brain.outputlayer.biases = choice([
+            ParentA.redbat.brain.outputlayer.biases,
+            ParentB.redbat.brain.outputlayer.biases
+        ]).copy()
+
         return child
     def mutate(self,mutation_rate):
         for array in [self.redbat.brain.hiddenlayer1.weights,self.redbat.brain.hiddenlayer1.biases,self.redbat.brain.outputlayer.weights,self.redbat.brain.outputlayer.biases]:
@@ -165,7 +191,7 @@ class GameInstance:
                     array[element] += array[element]*choice([+mutation_rate,-mutation_rate])
 
 class GATraining:
-    def __init__(self,population_size:int,mutation_rate:int,screen):
+    def __init__(self,population_size:int,mutation_rate:int,screen,gameplay):
         self.population_size = population_size
         self.mutation_rate = mutation_rate
         self.screen = screen
@@ -175,15 +201,16 @@ class GATraining:
         for i in range(population_size):
             self.gameinstances.append(GameInstance(1200,700,screen))
 
+        self.GAMEPLAY = gameplay
+
         self.generation_history = []
         self.average_fitness_history = []
 
         # Matplotlib interactive graph
         plt.ion()
+
         self.fig, self.ax = plt.subplots(figsize=(9, 5))
-        self.line, = self.ax.plot(
-            [], [], color="blue", marker="o", markersize=4
-        )
+        self.line, = self.ax.plot([], [], "b-o", markersize=4)
 
         self.ax.set_title("Average Fitness per Generation")
         self.ax.set_xlabel("Generation")
@@ -231,18 +258,26 @@ class GATraining:
         
         self.fitness_cal()
 
-        best_individual = max(self.gameinstances,key=lambda x: x.fitness)
+        best_individual = max(self.gameinstances,key=lambda x: x.raw_fitness)
         best_fitness = best_individual.fitness
         best_individual.redbat.brain.weights_save("bestweight")
         
         print(
-        f"Best fitness: {best_fitness:.4f}"
+        f"Best fitness: {best_fitness:.10f}"
         )
+        
+        self.update_graph()
         self.gen += 1
 
-        self.update_graph()
+        elite = GameInstance.crossover( # adding elitism to the GA- Picking up the best individual from the previous generation and adding it to the current generation without mutation
+            best_individual,
+            best_individual,
+            self.screen
+        )
+        childgameinstances.append(elite)
 
-        for _ in range(self.population_size):
+
+        for _ in range(self.population_size-1):
             def get_parent():
                 while True:
                     parent = choice(self.gameinstances)
@@ -260,8 +295,8 @@ class GATraining:
 
     def reproduction(self):
         end = time.perf_counter()
-        GAMEPLAY = 10
-        if end - self.start > GAMEPLAY:
+        self.GAMEPLAY = 10
+        if end - self.start > self.GAMEPLAY:
             self.selection()
             self.start = time.perf_counter()
         #print(end-self.start)
@@ -281,7 +316,7 @@ class GATraining:
         self.fig.canvas.flush_events()
         plt.pause(0.001)
 
-ga = GATraining(100,0.01,screen)
+ga = GATraining(100,0.01,screen,10)
 
 while running:
     # to end the game loop
