@@ -235,37 +235,43 @@ class GATraining:
         plt.show(block=False)
 
     def fitness_cal(self):
-        # Calculate raw fitness for every individual
-        fitness_values = []
+        raw_fitness_values = []
 
+        # Evaluate every individual
         for gameinstance in self.gameinstances:
             raw_fitness = gameinstance.fitness_cal()
-
             gameinstance.raw_fitness = raw_fitness
-            fitness_values.append(raw_fitness)
+            raw_fitness_values.append(raw_fitness)
 
-        total_fitness = sum(fitness_values)
-
-        # Average raw fitness of this generation
-        average_fitness = total_fitness / len(self.gameinstances)
+        # Track actual average fitness
+        average_fitness = (
+            sum(raw_fitness_values) / len(raw_fitness_values)
+        )
 
         self.generation_history.append(self.gen)
         self.average_fitness_history.append(average_fitness)
 
         print(
             f"Generation: {self.gen} | "
-            f"Average Fitness: {average_fitness:.4f}"
+            f"Average fitness: {average_fitness:.4f} | "
+            f"Best fitness: {max(raw_fitness_values):.4f}"
         )
 
-        # Normalize fitness for roulette-wheel selection
-        if total_fitness > 0:
-            for i, gameinstance in enumerate(self.gameinstances):
-                gameinstance.fitness = fitness_values[i] / total_fitness
-        else:
-            # Fallback if all individuals have zero fitness
-            equal_probability = 1 / len(self.gameinstances)
-            for gameinstance in self.gameinstances:
-                gameinstance.fitness = equal_probability
+        # Shift fitness values to make them nonnegative
+        min_fitness = min(raw_fitness_values)
+
+        selection_weights = [
+            fitness - min_fitness + 1e-6
+            for fitness in raw_fitness_values
+        ]
+
+        total_fitness = sum(selection_weights)
+
+        # Normalize into selection probabilities
+        for i, gameinstance in enumerate(self.gameinstances):
+            gameinstance.fitness = (
+                selection_weights[i] / total_fitness
+            )
 
         
     def selection(self):
