@@ -48,7 +48,6 @@ class GameInstance:
             0, self.config.WINDOW_HEIGHT // 2 - self.config.BAT_HEIGHT // 2,
             self.screen, (0, 100, 255), self.config.BAT_WIDTH, self.config.BAT_HEIGHT
         )
-        self.bluebat.brain.weights_load("./goodbluebat.npz") # static weight load  
 
         self.redbat = PaddleCreature(
             self.config.WINDOW_WIDTH - self.config.BAT_WIDTH,
@@ -135,15 +134,13 @@ class GameInstance:
             self.redbat.bat.score+=1
             self.ball.restart()
 
-        # neural network decision making section
-        bluebat_inputs = [self.ball.position.x,self.ball.position.y,self.ball.velocity.x,self.ball.velocity.y,self.bluebat.bat.rect.x,self.bluebat.bat.rect.y]
-        bluebat_decision = self.bluebat.brain.forward(bluebat_inputs)
-        if bluebat_decision == 1:
+        # Rule-based blue bat opponent
+        if self.ball.position.y < self.bluebat.bat.rect.centery - 10:
             if self.bluebat.bat.rect.y > self.config.BAT_TOP_BOUNDARY:
-                self.bluebat.bat.rect.y-=self.config.BAT_SENSITIVITY
-        elif bluebat_decision == 2:
+                self.bluebat.bat.rect.y -= self.config.BAT_SENSITIVITY
+        elif self.ball.position.y > self.bluebat.bat.rect.centery + 10:
             if self.bluebat.bat.rect.y < self.config.BAT_BOTTOM_BOUNDARY:
-                self.bluebat.bat.rect.y+=self.config.BAT_SENSITIVITY
+                self.bluebat.bat.rect.y += self.config.BAT_SENSITIVITY
 
         
         redbat_inputs = [ # sending normalized inputs to the redbat's neural network
