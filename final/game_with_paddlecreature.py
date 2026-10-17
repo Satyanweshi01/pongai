@@ -40,7 +40,7 @@ redbat = PaddleCreature(
     screen, (255, 50, 50), config.BAT_WIDTH, config.BAT_HEIGHT
 )
 
-#redbat.brain.weights_load("goodredbat.npz") # here the trained weights will get loaded
+redbat.brain.weights_load("bestweight.npz") # here the trained weights will get loaded
 
 # Ball object
 ball = Ball(
