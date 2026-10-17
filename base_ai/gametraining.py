@@ -310,7 +310,6 @@ class GATraining:
 
     def reproduction(self):
         end = time.perf_counter()
-        self.GAMEPLAY = 10
         if end - self.start > self.GAMEPLAY:
             self.selection()
             self.start = time.perf_counter()
