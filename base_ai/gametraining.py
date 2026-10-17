@@ -9,7 +9,7 @@ import numpy as np
 from random import choice,random
 from config import Config
 from game_comp import PaddleCreature,Ball,Bat,text
-from ui_comp import timerDisplay, scoreBoard, centerLine
+from ui_comp import centerLine
 
 
 pygame.init()
@@ -55,8 +55,6 @@ class GameInstance:
             self.config.WINDOW_HEIGHT // 2 - self.config.BAT_HEIGHT // 2,
             self.screen, (255, 50, 50), self.config.BAT_WIDTH, self.config.BAT_HEIGHT
         )
-        self.fitness = 0
-        self.raw_fitness = 0
         # Ball object
         self.ball = Ball(
             self.config.CENTER_X,
@@ -64,61 +62,45 @@ class GameInstance:
             self.screen, self.config.BALL_SPEED, self.config.BALL_RADIUS
         )
 
+        self.fitness = 0
+        self.raw_fitness = 0
+
+        self.sim_frames = 0
+        self.t_time = 0
+
     def fitness_cal(self):
         self.fitness = self.redbat.fitness_cal(self.bluebat.bat) # passing bluebat's bat as opponent
         return self.fitness
 
     def gamestate_update(self):
-        self.frame = 0
-        self.hour = 0 
-        self.minute = 0
-        self.sec = 0
-        self.t_time = 0
+        # Advance this game's simulation clock
+        self.sim_frames += 1
+        self.t_time = self.sim_frames // 60
 
-        centerLine(screen=self.screen,config=self.config)
-        # scoreBoard(screen=self.screen,player1=self.bluebat,player2=self.redbat,config=self.config)
-
-        # time update
-        self.frame += 1
-        if self.frame == 60:
-            self.sec += 1
-            self.t_time += 1
-            self.frame = 0
-        if self.sec == 60:
-            self.minute += 1
-            self.sec = 0
-        if self.minute == 60:
-            self.hour += 1
-            self.minute = 0
-        # formatted_time = f"{self.hour:02}:{self.minute:02}:{self.sec:02}"
-        # timerDisplay(screen=self.screen,formatted_time=formatted_time,config=self.config)
-
-        # speed dynamism
+        # Dynamically increase ball speed
         if self.t_time < 3:
-            self.ball.velocityconst = 5 
+            speed = 5
         elif self.t_time < 6:
-            self.ball.velocityconst = 7 
+            speed = 7
         elif self.t_time < 12:
-            self.ball.velocityconst = 9
+            speed = 9
         elif self.t_time < 18:
-            self.ball.velocityconst = 11
+            speed = 11
         elif self.t_time < 30:
-            self.ball.velocityconst = 13
+            speed = 13
         else:
-            self.ball.velocityconst = 15
+            speed = 15
 
-        self.ball.velocityconst = self.ball.velocityconst * self.config.BALL_SPEED_SCALE
+        self.ball.velocityconst = (
+            speed * self.config.BALL_SPEED_SCALE
+        )
         self.ball.velocity_update()
 
-
-        self.ball.draw()
+        # Update ball physics
         self.ball.update()
+
         if self.ball.position.y > self.config.WALL_BOTTOM_BOUNDARY or self.ball.position.y < self.config.WALL_TOP_BOUNDARY: # 425 is the buttom edge of the wall
-            self.ball.wallcollision()
-
-
-        self.redbat.bat.draw()
-        self.bluebat.bat.draw()    
+            self.ball.wallcollision() 
 
         # collision between ball and bat
         if self.ball.rect.colliderect(self.redbat.bat.rect):
@@ -162,6 +144,15 @@ class GameInstance:
         elif redbat_decision == 2:
             if self.redbat.bat.rect.y < self.config.BAT_BOTTOM_BOUNDARY:
                 self.redbat.bat.rect.y+=self.config.BAT_SENSITIVITY
+
+    def draw(self):
+        # This method is called ONLY for the AI being displayed
+        centerLine(screen=self.screen, config=self.config)
+
+        self.ball.draw()
+        self.redbat.bat.draw()
+        self.bluebat.bat.draw()
+        
     def crossover(ParentA,ParentB,screen):
         child = GameInstance(1200,700,screen)
 
@@ -227,9 +218,9 @@ class GATraining:
         self.fig, self.ax = plt.subplots(figsize=(9, 5))
         self.line, = self.ax.plot([], [], "b-o", markersize=4)
 
-        self.ax.set_title("Average Fitness per Generation")
+        self.ax.set_title("Average Raw Fitness per Generation")
         self.ax.set_xlabel("Generation")
-        self.ax.set_ylabel("Average Fitness")
+        self.ax.set_ylabel("Average Raw Fitness")
         self.ax.grid(True, alpha=0.3)
 
         plt.show(block=False)
@@ -253,8 +244,8 @@ class GATraining:
 
         print(
             f"Generation: {self.gen} | "
-            f"Average fitness: {average_fitness:.4f} | "
-            f"Best fitness: {max(raw_fitness_values):.4f}"
+            f"Average raw fitness: {average_fitness:.4f} | "
+            f"Best raw fitness: {max(raw_fitness_values):.4f}"
         )
 
         # Shift fitness values to make them nonnegative
@@ -280,7 +271,7 @@ class GATraining:
         self.fitness_cal()
 
         best_individual = max(self.gameinstances,key=lambda x: x.raw_fitness)
-        best_fitness = best_individual.fitness
+        best_fitness = best_individual.raw_fitness
         best_individual.redbat.brain.weights_save("bestweight")
         
         self.update_graph()
@@ -312,12 +303,23 @@ class GATraining:
 
     def reproduction(self):
         end = time.perf_counter()
-        if end - self.start > self.GAMEPLAY:
+
+        # Evaluate and evolve after the evaluation period
+        if end - self.start >= self.GAMEPLAY:
             self.selection()
             self.start = time.perf_counter()
-        #print(end-self.start)
+
+        # Simulate every individual without rendering
         for gameinstance in self.gameinstances:
             gameinstance.gamestate_update()
+
+        # Render only the elite (first individual)
+        self.screen.fill((0, 0, 0))
+
+        best = self.gameinstances[0]
+        best.draw()
+
+
 
     def update_graph(self):
         self.line.set_data(
@@ -332,7 +334,7 @@ class GATraining:
         self.fig.canvas.flush_events()
         plt.pause(0.001)
 
-ga = GATraining(100,0.01,screen,60)
+ga = GATraining(1000,0.01,screen,60)
 
 while running:
     # to end the game loop
@@ -340,14 +342,11 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    screen.fill((0, 0, 0))  
 
     ga.reproduction()
     
     pygame.display.flip()
-    
-    delta_time = clock.tick(60)/1000
-    delta_time = max(0.001, min(0.1, delta_time))
-
+    clock.tick(60)
 
 pygame.quit()
+plt.close("all")
