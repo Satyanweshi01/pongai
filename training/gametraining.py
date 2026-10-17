@@ -64,6 +64,7 @@ class GameInstance:
         self.fitness = 0
         self.raw_fitness = 0
         self.total_miss_error = 0.0
+        self.last_action = 0
 
         self.sim_frames = 0
         self.t_time = 0
@@ -152,6 +153,7 @@ class GameInstance:
             self.redbat.bat.rect.y / self.config.WINDOW_HEIGHT
         ]
         redbat_decision = self.redbat.brain.forward(redbat_inputs)
+        self.last_action = redbat_decision
         if redbat_decision == 1:
             if self.redbat.bat.rect.y > self.config.BAT_TOP_BOUNDARY:
                 self.redbat.bat.rect.y-=self.config.BAT_SENSITIVITY
@@ -159,13 +161,39 @@ class GameInstance:
             if self.redbat.bat.rect.y < self.config.BAT_BOTTOM_BOUNDARY:
                 self.redbat.bat.rect.y+=self.config.BAT_SENSITIVITY
 
-    def draw(self):
+    def draw(self, gen=0, best_fitness=0.0, speed=1):
         # This method is called ONLY for the AI being displayed
         centerLine(screen=self.screen, config=self.config)
 
         self.ball.draw()
         self.redbat.bat.draw()
         self.bluebat.bat.draw()
+
+        # info board
+        hud_surface = pygame.Surface((270, 130), pygame.SRCALPHA)
+        hud_surface.fill((8, 14, 26, 210))  # dark glassmorphism panel
+        self.screen.blit(hud_surface, (15, 15))
+        pygame.draw.rect(self.screen, (0, 220, 255), (15, 15, 270, 130), width=1, border_radius=6)
+
+        font_large = pygame.font.SysFont("Arial", 18, bold=True)
+        font_small = pygame.font.SysFont("Arial", 13, bold=True)
+
+        action_names = {0: "HOLD [ — ]", 1: "UP [ ▲ ]", 2: "DOWN [ ▼ ]"}
+        WHITE = (255, 255, 255)
+
+        gen_text = font_large.render(f"GENERATION: {gen:03d}", True, WHITE)
+        fit_text = font_large.render(f"BEST FIT: {best_fitness:+.2f}", True, WHITE)
+        score_text = font_small.render(f"SCORE: Blue {self.bluebat.bat.score:02d} | Red {self.redbat.bat.score:02d}", True, WHITE)
+        hits_text = font_small.render(f"RALLY DEFLECTIONS: {self.redbat.bat.collision}", True, WHITE)
+        act_text = font_small.render(f"AI ACTION: {action_names.get(self.last_action, 'UNKNOWN')}", True, WHITE)
+        speed_text = font_small.render(f"SPEED: {speed}x  [↑/↓ Speed, SPACE Pause]", True, WHITE)
+
+        self.screen.blit(gen_text, (25, 20))
+        self.screen.blit(fit_text, (25, 42))
+        self.screen.blit(score_text, (25, 65))
+        self.screen.blit(hits_text, (25, 82))
+        self.screen.blit(act_text, (25, 99))
+        self.screen.blit(speed_text, (25, 118))
         
     def clone(ParentA,screen):
         child = GameInstance(1200,700,screen)
@@ -231,11 +259,13 @@ class GATraining:
         for i in range(population_size):
             self.gameinstances.append(GameInstance(1200,700,screen))
 
-        self.steps_per_generation = 3600  # 60 seconds at 60 simulation steps/sec
+        self.steps_per_generation = 1200  # fast generation cycles for time-lapse
         self.steps_this_generation = 0
 
         self.best_to_render = self.gameinstances[0]
-        self.simulation_steps_per_frame = 1 # increase it to experiment faster
+        self.best_fitness = 0.0
+        self.simulation_steps_per_frame = 1  
+        self.paused = False
 
         self.generation_history = []
         self.average_fitness_history = []
@@ -300,6 +330,7 @@ class GATraining:
 
         best_individual = max(self.gameinstances,key=lambda x: x.raw_fitness)
         best_fitness = best_individual.raw_fitness
+        self.best_fitness = best_fitness
         best_individual.redbat.brain.weights_save("bestweight")
         
         self.update_graph()
@@ -332,22 +363,27 @@ class GATraining:
 
 
     def reproduction(self):
-        # Advance every individual's simulation
-        for _ in range(self.simulation_steps_per_frame):
-            for gameinstance in self.gameinstances:
-                gameinstance.gamestate_update()
+        if not self.paused:
+            # Advance every individual's simulation with fast-forward steps
+            for _ in range(self.simulation_steps_per_frame):
+                for gameinstance in self.gameinstances:
+                    gameinstance.gamestate_update()
 
-            self.steps_this_generation += 1
+                self.steps_this_generation += 1
 
-        # Finish the generation after the fixed step budget
-        if self.steps_this_generation >= self.steps_per_generation:
-            self.selection()
-            self.steps_this_generation = 0
+            # Finish the generation after the fixed step budget
+            if self.steps_this_generation >= self.steps_per_generation:
+                self.selection()
+                self.steps_this_generation = 0
 
-        # Render only one game
+        # Render only the best individual with HUD
         self.screen.fill((0, 0, 0))
 
-        self.best_to_render.draw() # rendering the elite
+        self.best_to_render.draw(
+            gen=self.gen,
+            best_fitness=self.best_fitness,
+            speed=self.simulation_steps_per_frame
+        )
 
 
 
@@ -364,13 +400,23 @@ class GATraining:
         self.fig.canvas.flush_events()
         plt.pause(0.001)
 
-ga = GATraining(1000,0.05,screen) # increasing mutation 0.01 to 0.05
+ga = GATraining(80, 0.05, screen)  
 
 while running:
-    # to end the game loop
+    # to end the game loop or handle interactive speed controls
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                ga.simulation_steps_per_frame = min(30, ga.simulation_steps_per_frame + 2)
+                print(f"Simulation fast-forward speed: {ga.simulation_steps_per_frame}x")
+            elif event.key == pygame.K_DOWN:
+                ga.simulation_steps_per_frame = max(1, ga.simulation_steps_per_frame - 2)
+                print(f"Simulation fast-forward speed: {ga.simulation_steps_per_frame}x")
+            elif event.key == pygame.K_SPACE:
+                ga.paused = not ga.paused
+                print("Simulation Paused" if ga.paused else "Simulation Resumed")
 
 
     ga.reproduction()
