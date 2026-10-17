@@ -4,6 +4,7 @@ from config import Config
 from game_comp import PaddleCreature,Ball,Bat,text
 from ui_comp import timerDisplay, scoreBoard, centerLine
 import time
+import matplotlib.pyplot as plt
 
 pygame.init()
 
@@ -49,6 +50,7 @@ class GameInstance:
             self.screen, (255, 50, 50), self.config.BAT_WIDTH, self.config.BAT_HEIGHT
         )
         self.fitness = 0
+        self.raw_fitness = 0
         # Ball object
         self.ball = Ball(
             self.config.CENTER_X,
@@ -57,7 +59,7 @@ class GameInstance:
         )
 
     def fitness_cal(self):
-        self.fitness = self.redbat.fitness_cal()
+        self.fitness = self.redbat.fitness_cal(self.bluebat.bat) # passing bluebat's bat as opponent
         return self.fitness
 
     def gamestate_update(self):
@@ -172,20 +174,74 @@ class GATraining:
         self.gameinstances = []
         for i in range(population_size):
             self.gameinstances.append(GameInstance(1200,700,screen))
-    
+
+        self.generation_history = []
+        self.average_fitness_history = []
+
+        # Matplotlib interactive graph
+        plt.ion()
+        self.fig, self.ax = plt.subplots(figsize=(9, 5))
+        self.line, = self.ax.plot(
+            [], [], color="blue", marker="o", markersize=4
+        )
+
+        self.ax.set_title("Average Fitness per Generation")
+        self.ax.set_xlabel("Generation")
+        self.ax.set_ylabel("Average Fitness")
+        self.ax.grid(True, alpha=0.3)
+
+        plt.show(block=False)
+
     def fitness_cal(self):
-        # this calculates the fitness of the gameinstances by judging it's redbat Paddlecreature 
-        total_fitness = 0
+        # Calculate raw fitness for every individual
+        fitness_values = []
+
         for gameinstance in self.gameinstances:
-            total_fitness += gameinstance.fitness_cal()
-        # now calculating normalized fitness
-        for gameinstance in self.gameinstances:
-            gameinstance.fitness = gameinstance.fitness/total_fitness
-            print(gameinstance.fitness)
+            raw_fitness = gameinstance.fitness_cal()
+
+            gameinstance.raw_fitness = raw_fitness
+            fitness_values.append(raw_fitness)
+
+        total_fitness = sum(fitness_values)
+
+        # Average raw fitness of this generation
+        average_fitness = total_fitness / len(self.gameinstances)
+
+        self.generation_history.append(self.gen)
+        self.average_fitness_history.append(average_fitness)
+
+        print(
+            f"Generation: {self.gen} | "
+            f"Average Fitness: {average_fitness:.4f}"
+        )
+
+        # Normalize fitness for roulette-wheel selection
+        if total_fitness > 0:
+            for i, gameinstance in enumerate(self.gameinstances):
+                gameinstance.fitness = fitness_values[i] / total_fitness
+        else:
+            # Fallback if all individuals have zero fitness
+            equal_probability = 1 / len(self.gameinstances)
+            for gameinstance in self.gameinstances:
+                gameinstance.fitness = equal_probability
+
         
     def selection(self):
         childgameinstances = []
+        
         self.fitness_cal()
+
+        best_individual = max(self.gameinstances,key=lambda x: x.fitness)
+        best_fitness = best_individual.fitness
+        best_individual.redbat.brain.weights_save("bestweight")
+        
+        print(
+        f"Best fitness: {best_fitness:.4f}"
+        )
+        self.gen += 1
+
+        self.update_graph()
+
         for _ in range(self.population_size):
             def get_parent():
                 while True:
@@ -201,21 +257,31 @@ class GATraining:
 
         # after selection
         self.gameinstances = childgameinstances
-        childgameinstances = sorted(childgameinstances,key = lambda x: x.fitness)
-        childgameinstances[0].redbat.brain.weights_save("bestweight")
-        print(f"The best fitness of {self.gen} : {childgameinstances[0].fitness}")
+
     def reproduction(self):
         end = time.perf_counter()
         GAMEPLAY = 10
         if end - self.start > GAMEPLAY:
-            self.gen += 1
             self.selection()
             self.start = time.perf_counter()
-        print(end-self.start)
+        #print(end-self.start)
         for gameinstance in self.gameinstances:
             gameinstance.gamestate_update()
 
-ga = GATraining(10,0.01,screen)
+    def update_graph(self):
+        self.line.set_data(
+            self.generation_history,
+            self.average_fitness_history
+        )
+
+        self.ax.relim()
+        self.ax.autoscale_view()
+
+        self.fig.canvas.draw_idle()
+        self.fig.canvas.flush_events()
+        plt.pause(0.001)
+
+ga = GATraining(100,0.01,screen)
 
 while running:
     # to end the game loop
