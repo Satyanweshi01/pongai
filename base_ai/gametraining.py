@@ -283,10 +283,6 @@ class GATraining:
         best_fitness = best_individual.fitness
         best_individual.redbat.brain.weights_save("bestweight")
         
-        print(
-        f"Best fitness: {best_fitness:.10f}"
-        )
-        
         self.update_graph()
         self.gen += 1
 
