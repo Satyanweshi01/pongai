@@ -143,11 +143,18 @@ class Ball(Mover):
         self.velocity = Vectorcls.multi(unit_vec,self.velocityconst)
     
     def restart(self):
-        #print(self.startingpos_x,self.startingpos_y)
         self.position.x = self.startingpos_x
         self.position.y = self.startingpos_y
-        self.velocity.x = random.choice([-self.velocityconst,self.velocityconst])
-        self.velocity.y = random.choice([-self.velocityconst,self.velocityconst])
+
+        self.rect.x = round(self.position.x)
+        self.rect.y = round(self.position.y)
+
+        self.velocity.x = random.choice(
+            [-self.velocityconst, self.velocityconst]
+        )
+        self.velocity.y = random.choice(
+            [-self.velocityconst, self.velocityconst]
+        )
 
 #bat
 class Bat():
@@ -187,6 +194,6 @@ class PaddleCreature():
 
     def fitness_cal(self, oppo_bat):
         score_difference = self.bat.score - oppo_bat.score
-        self.fitness = ( 10 * score_difference + 0.5 * self.bat.collision )
+        self.fitness = ( 10 * score_difference + 0.02 * self.bat.collision )
 
         return self.fitness

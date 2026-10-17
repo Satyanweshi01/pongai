@@ -75,18 +75,15 @@ class GameInstance:
     def gamestate_update(self):
         # Advance this game's simulation clock
         self.sim_frames += 1
-        self.t_time = self.sim_frames // 60
-
-        # Dynamically increase ball speed
-        if self.t_time < 3:
+        if self.sim_frames < 180:
             speed = 5
-        elif self.t_time < 6:
+        elif self.sim_frames < 360:
             speed = 7
-        elif self.t_time < 12:
+        elif self.sim_frames < 720:
             speed = 9
-        elif self.t_time < 18:
+        elif self.sim_frames < 1080:
             speed = 11
-        elif self.t_time < 30:
+        elif self.sim_frames < 1800:
             speed = 13
         else:
             speed = 15
@@ -98,6 +95,10 @@ class GameInstance:
 
         # Update ball physics
         self.ball.update()
+
+        # Synchronize collision rectangle with physics position
+        self.ball.rect.x = round(self.ball.position.x)
+        self.ball.rect.y = round(self.ball.position.y)
 
         if self.ball.position.y > self.config.WALL_BOTTOM_BOUNDARY or self.ball.position.y < self.config.WALL_TOP_BOUNDARY: # 425 is the buttom edge of the wall
             self.ball.wallcollision() 
@@ -198,7 +199,7 @@ class GameInstance:
 
 
 class GATraining:
-    def __init__(self,population_size:int,mutation_rate:int,screen):
+    def __init__(self,population_size:int,mutation_rate:float,screen):
         self.population_size = population_size
         self.mutation_rate = mutation_rate
         self.screen = screen
@@ -211,7 +212,7 @@ class GATraining:
         self.steps_this_generation = 0
 
         self.best_to_render = self.gameinstances[0]
-        self.simulation_steps_per_frame = 1
+        self.simulation_steps_per_frame = 1 # increase it to experiment faster
 
         self.generation_history = []
         self.average_fitness_history = []
@@ -290,12 +291,15 @@ class GATraining:
 
 
         for _ in range(self.population_size-1):
-            def get_parent():
-                while True:
-                    parent = choice(self.gameinstances)
-                    prob = random()
-                    if prob<=parent.fitness:
-                        return parent
+            def get_parent(): # switching to tornament selection method
+                contestants = [
+                    choice(self.gameinstances)
+                    for _ in range(3)
+                ]
+                return max(
+                    contestants,
+                    key=lambda individual: individual.raw_fitness
+                )
             ParentA = get_parent()
             ParentB = get_parent()
             child = GameInstance.crossover(ParentA,ParentB,self.screen)
@@ -340,7 +344,7 @@ class GATraining:
         self.fig.canvas.flush_events()
         plt.pause(0.001)
 
-ga = GATraining(1000,0.01,screen)
+ga = GATraining(1000,0.05,screen) # increasing mutation 0.01 to 0.05
 
 while running:
     # to end the game loop
