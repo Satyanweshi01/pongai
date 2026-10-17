@@ -1,9 +1,9 @@
 import pygame
 from random import choice,random
 from config import Config
-from nn_comp import NeuralNetwork
 from game_comp import PaddleCreature,Ball,Bat,text
 from ui_comp import timerDisplay, scoreBoard, centerLine
+import time
 
 pygame.init()
 
@@ -145,7 +145,7 @@ class GameInstance:
         elif redbat_decision == 2:
             if self.redbat.bat.rect.y < self.config.BAT_BOTTOM_BOUNDARY:
                 self.redbat.bat.rect.y+=self.config.BAT_SENSITIVITY
-    def crossover(ParentA:GameInstance,ParentB:GameInstance):
+    def crossover(ParentA,ParentB):
         child = GameInstance(1200,700)
 
         child.redbat.brain.hiddenlayer1.weights = choice([ParentA.redbat.brain.hiddenlayer1.weights,ParentB.redbat.brain.hiddenlayer1.weights])
@@ -164,6 +164,8 @@ class GATraining:
     def __init__(self,population_size:int,mutation_rate:int):
         self.population_size = population_size
         self.mutation_rate = mutation_rate
+        self.gen = 0
+        self.start = time.perf_counter()
         self.gameinstances = []
         for i in range(population_size):
             self.gameinstances.append(GameInstance(1200,700,screen))
@@ -196,8 +198,18 @@ class GATraining:
 
         # after selection
         self.gameinstances = childgameinstances
+        childgameinstances = sorted(childgameinstances,key = lambda x: x.fitness)
+        childgameinstances[0].redbat.weights_save("bestweight")
     def reproduction(self):
-        pass
+        end = time.perf_counter()
+        if end - start > 60:
+            self.selection()
+            self.start = time.perf_counter()
+
+        for gameinstance in self.gameinstances:
+            gameinstance.gamestate_update()
+
+ga = GATraining(10,0.01)
 
 while running:
     # to end the game loop
@@ -207,7 +219,7 @@ while running:
 
     screen.fill((0, 0, 0))  
 
-
+    ga.reproduction()
     
     pygame.display.flip()
     
