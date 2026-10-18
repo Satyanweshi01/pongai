@@ -1,30 +1,25 @@
+import os
 import pygame
 from config import Config
 from nn_comp import NeuralNetwork
-from game_comp import PaddleCreature,Ball,Bat,text
+from game_comp import PaddleCreature, Ball, Bat, text
 from ui_comp import timerDisplay, scoreBoard, centerLine
 
 pygame.init()
 
-#window config
+# Window config
 WINDOW_WIDTH = 1200
 WINDOW_HEIGHT = 700
 
-# WINDOW_WIDTH = 800
-# WINDOW_HEIGHT = 400
-
-# WINDOW_WIDTH = 150
-# WINDOW_HEIGHT = 100
-
-#creating window
-config = Config(WINDOW_WIDTH,WINDOW_HEIGHT)
+# Creating window
+config = Config(WINDOW_WIDTH, WINDOW_HEIGHT)
 screen = pygame.display.set_mode((config.WINDOW_WIDTH, config.WINDOW_HEIGHT))
-pygame.display.set_caption("Pong Ai") 
+pygame.display.set_caption("Pong AI") 
 
-#creating clock to control the rendering
+# Creating clock to control the rendering
 clock = pygame.time.Clock()
 
-# game loop
+# Game loop
 running = True
 delta_time = 0.1
 
@@ -40,7 +35,28 @@ redbat = PaddleCreature(
     screen, (255, 50, 50), config.BAT_WIDTH, config.BAT_HEIGHT
 )
 
-redbat.brain.weights_load("bestweight.npz") # here the trained weights will get loaded
+# Load trained neural network weights
+current_dir = os.path.dirname(os.path.abspath(__file__))
+final_weights = os.path.join(current_dir, "bestweight.npz")
+training_weights = os.path.join(current_dir, "..", "training", "bestweight.npz")
+
+weights_to_load = None
+if os.path.exists(final_weights) and os.path.exists(training_weights):
+    # Pick whichever is newer
+    if os.path.getmtime(training_weights) > os.path.getmtime(final_weights):
+        weights_to_load = training_weights
+    else:
+        weights_to_load = final_weights
+elif os.path.exists(final_weights):
+    weights_to_load = final_weights
+elif os.path.exists(training_weights):
+    weights_to_load = training_weights
+
+if weights_to_load:
+    print(f"Loading trained weights from: {weights_to_load}")
+    redbat.brain.weights_load(weights_to_load)
+else:
+    print("WARNING: No bestweight.npz found in final/ or training/! Run training/gametraining.py first.")
 
 # Ball object
 ball = Ball(
@@ -56,13 +72,12 @@ sec = 0
 t_time = 0
 
 while running:
-    #screen.fill((0,0,0)) #fills the window with the rgb color for each iteration
     screen.fill((0, 0, 0))  # Black background
 
-    centerLine(screen=screen,config=config)
-    scoreBoard(screen=screen,player1=bluebat,player2=redbat,config=config)
+    centerLine(screen=screen, config=config)
+    scoreBoard(screen=screen, player1=bluebat, player2=redbat, config=config)
 
-    # time update
+    # Time update
     frame += 1
     if frame == 60:
         sec += 1
@@ -75,9 +90,9 @@ while running:
         hour += 1
         minute = 0
     formatted_time = f"{hour:02}:{minute:02}:{sec:02}"
-    timerDisplay(screen=screen,formatted_time=formatted_time,config=config)
+    timerDisplay(screen=screen, formatted_time=formatted_time, config=config)
     
-    # speed dynamism
+    # Speed dynamism
     if t_time < 30:
         ball.velocityconst = 5 
     elif t_time < 60:
@@ -94,82 +109,74 @@ while running:
     ball.velocityconst = ball.velocityconst * config.BALL_SPEED_SCALE
     ball.velocity_update()
 
-
     ball.draw()
     ball.update()
-    if ball.position.y > config.WALL_BOTTOM_BOUNDARY or ball.position.y < config.WALL_TOP_BOUNDARY: # 425 is the buttom edge of the wall
-        ball.wallcollision()
 
+    # Wall collision with clamping to prevent jitter
+    if ball.position.y > config.WALL_BOTTOM_BOUNDARY:
+        ball.position.y = config.WALL_BOTTOM_BOUNDARY
+        ball.wallcollision()
+    elif ball.position.y < config.WALL_TOP_BOUNDARY:
+        ball.position.y = config.WALL_TOP_BOUNDARY
+        ball.wallcollision()
 
     redbat.bat.draw()
     bluebat.bat.draw()    
 
-    # collision between ball and bat
+    # Collision between ball and paddles
     if ball.rect.colliderect(redbat.bat.rect):
         ball.paddlecollision(redbat.bat)
 
     if ball.rect.colliderect(bluebat.bat.rect):
-       ball.paddlecollision(bluebat.bat)
+        ball.paddlecollision(bluebat.bat)
 
-
-    #boundary check
-    if ball.position.x > config.WALL_RIGHT_BOUNDARY: #820 is the right edge of the screen
-        bluebat.bat.score+=1
+    # Boundary check (scoring)
+    if ball.position.x > config.WALL_RIGHT_BOUNDARY:
+        bluebat.bat.score += 1
         ball.restart()
     if ball.position.x < config.WALL_LEFT_BOUNDARY:
-        redbat.bat.score+=1
+        redbat.bat.score += 1
         ball.restart()
 
-    # to end the game loop
+    # Event handling
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
+                running = False
 
-
-
-    #keyboard input for bats
+    # Keyboard input for human player (Blue bat: W/S or UP/DOWN arrows)
     keys = pygame.key.get_pressed()
-
-    #for bludebat w,s 
-    if keys[pygame.K_w]:
+    if keys[pygame.K_w] or keys[pygame.K_UP]:
         if bluebat.bat.rect.y > config.BAT_TOP_BOUNDARY:
-            bluebat.bat.rect.y-=config.BAT_SENSITIVITY
-    elif keys[pygame.K_s]:
+            bluebat.bat.rect.y -= config.BAT_SENSITIVITY
+    elif keys[pygame.K_s] or keys[pygame.K_DOWN]:
         if bluebat.bat.rect.y < config.BAT_BOTTOM_BOUNDARY:
-            bluebat.bat.rect.y+=config.BAT_SENSITIVITY
+            bluebat.bat.rect.y += config.BAT_SENSITIVITY
 
-    # bluebat_inputs = [ball.position.x,ball.position.y,ball.velocity.x,ball.velocity.y,bluebat.bat.rect.x,bluebat.bat.rect.y]
-    # bluebat_decision = bluebat.brain.forward(bluebat_inputs)
-    # if bluebat_decision == 1:
-    #     if bluebat.bat.rect.y > config.BAT_TOP_BOUNDARY:
-    #         bluebat.bat.rect.y-=config.BAT_SENSITIVITY
-    # elif bluebat_decision == 2:
-    #     if bluebat.bat.rect.y < config.BAT_BOTTOM_BOUNDARY:
-    #         bluebat.bat.rect.y+=config.BAT_SENSITIVITY
+    # Neural network decision making for AI (Red bat)
+    # Zero-centered normalized inputs matching training representation
+    redbat_inputs = [
+        (ball.position.x - config.CENTER_X) / config.CENTER_X,                         # [-1.0, +1.0]
+        (ball.position.y - config.CENTER_Y) / config.CENTER_Y,                         # [-1.0, +1.0]
+        ball.velocity.x / 15.0,                                                        # [-1.0, +1.0]
+        ball.velocity.y / 15.0,                                                        # [-1.0, +1.0]
+        (ball.position.y - redbat.bat.rect.centery) / config.WINDOW_HEIGHT,            # vertical error relative to bat center
+        (redbat.bat.rect.centery - config.CENTER_Y) / config.CENTER_Y                 # bat position on court [-1.0, +1.0]
+    ]
 
-    #for red bat (now it is controlled by the nn)
-    # if keys[pygame.K_UP]:
-    #     if redbat.rect.y > BATUPBOUNDARY:
-    #         redbat.rect.y-=BATSENSITIVITY
-    # if keys[pygame.K_DOWN]:
-    #     if redbat.rect.y < BATDOWNBOUNDARY:
-    #         redbat.rect.y+=BATSENSITIVITY
-
-
-    # neural network decision making section
-    redbat_inputs = [ball.position.x,ball.position.y,ball.velocity.x,ball.velocity.y,redbat.bat.rect.x,redbat.bat.rect.y]
     redbat_decision = redbat.brain.forward(redbat_inputs)
     if redbat_decision == 1:
         if redbat.bat.rect.y > config.BAT_TOP_BOUNDARY:
-            redbat.bat.rect.y-=config.BAT_SENSITIVITY
+            redbat.bat.rect.y -= config.BAT_SENSITIVITY
     elif redbat_decision == 2:
         if redbat.bat.rect.y < config.BAT_BOTTOM_BOUNDARY:
-            redbat.bat.rect.y+=config.BAT_SENSITIVITY
+            redbat.bat.rect.y += config.BAT_SENSITIVITY
     
     pygame.display.flip()
     
-    delta_time = clock.tick(60)/1000
+    delta_time = clock.tick(60) / 1000
     delta_time = max(0.001, min(0.1, delta_time))
-
 
 pygame.quit()
