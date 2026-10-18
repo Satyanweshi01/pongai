@@ -202,8 +202,6 @@ class Bat():
             self.color,
             self.rect
         )
-class GameInstance:
-    pass
 
 def text(string, screen, text_color, x, y,
          font="Arial", size=20, bold=False):
