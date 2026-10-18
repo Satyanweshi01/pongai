@@ -113,8 +113,15 @@ class GameInstance:
         self.ball.rect.x = round(self.ball.position.x)
         self.ball.rect.y = round(self.ball.position.y)
 
-        if self.ball.position.y > self.config.WALL_BOTTOM_BOUNDARY or self.ball.position.y < self.config.WALL_TOP_BOUNDARY: # 425 is the buttom edge of the wall
-            self.ball.wallcollision() 
+        # Wall collision detection with boundary clamping
+        if self.ball.position.y <= self.config.WALL_TOP_BOUNDARY:
+            self.ball.position.y = self.config.WALL_TOP_BOUNDARY
+            self.ball.rect.y = round(self.ball.position.y)
+            self.ball.velocity.y = abs(self.ball.velocity.y)
+        elif self.ball.position.y >= self.config.WALL_BOTTOM_BOUNDARY - self.ball.radius * 2:
+            self.ball.position.y = self.config.WALL_BOTTOM_BOUNDARY - self.ball.radius * 2
+            self.ball.rect.y = round(self.ball.position.y)
+            self.ball.velocity.y = -abs(self.ball.velocity.y) 
 
         # collision between ball and bat
         if self.ball.rect.colliderect(self.redbat.bat.rect):
@@ -136,13 +143,14 @@ class GameInstance:
             self.redbat.bat.score+=1
             self.ball.restart()
 
-        # Rule-based blue bat opponent
+        # Rule-based blue bat opponent (tuned speed so red can score on steep returns)
+        blue_speed = max(8, round(self.config.BAT_SENSITIVITY * 0.75))
         if self.ball.position.y < self.bluebat.bat.rect.centery - 10:
             if self.bluebat.bat.rect.y > self.config.BAT_TOP_BOUNDARY:
-                self.bluebat.bat.rect.y -= self.config.BAT_SENSITIVITY
+                self.bluebat.bat.rect.y -= blue_speed
         elif self.ball.position.y > self.bluebat.bat.rect.centery + 10:
             if self.bluebat.bat.rect.y < self.config.BAT_BOTTOM_BOUNDARY:
-                self.bluebat.bat.rect.y += self.config.BAT_SENSITIVITY
+                self.bluebat.bat.rect.y += blue_speed
 
         
         redbat_inputs = [ # zero-centered normalized inputs to the redbat's neural network (-1.0 to 1.0)
@@ -267,21 +275,7 @@ class GATraining:
             f"Best raw fitness: {max(raw_fitness_values):.4f}"
         )
 
-        # Shift fitness values to make them nonnegative
-        min_fitness = min(raw_fitness_values)
 
-        selection_weights = [
-            fitness - min_fitness + 1e-6
-            for fitness in raw_fitness_values
-        ]
-
-        total_fitness = sum(selection_weights)
-
-        # Normalize into selection probabilities
-        for i, gameinstance in enumerate(self.gameinstances):
-            gameinstance.fitness = (
-                selection_weights[i] / total_fitness
-            )
 
         
     def selection(self):
