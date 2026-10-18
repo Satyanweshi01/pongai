@@ -133,6 +133,7 @@ class Ball(Mover):
         if bat.rect.centerx > self.rect.centerx: # bat on the right
             if self.velocity.x > 0:
                 bat.collision += 1
+                # preventing clipping
                 self.position.x = min(self.position.x - OFFSET, bat.rect.left - self.radius * 2)
                 self.rect.x = round(self.position.x)
 
