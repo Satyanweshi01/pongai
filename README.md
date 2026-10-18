@@ -54,7 +54,7 @@ In the training module - I have several modules -
 ---
 
 ### Currently neural network I am using have -
-1. input layer(6 perceptron) - with contains parameters like 
+1. input layer(6 inputs) - with contains parameters like 
    - Ball X position
    - Ball Y position 
    - Ball X velocity 
