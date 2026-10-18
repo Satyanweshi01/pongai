@@ -128,16 +128,40 @@ class Ball(Mover):
     
     def paddlecollision(self,bat): # for bat collision detection
         OFFSET = 10
-        if bat.rect.centerx > self.rect.centerx: # bat in the right
+        MAX_BOUNCE_ANGLE = 5 * math.pi / 18  # max 50 degrees deflection angle
+
+        if bat.rect.centerx > self.rect.centerx: # bat on the right
             if self.velocity.x > 0:
-                bat.collision+= 1
-                self.position.x = self.position.x - OFFSET
-                self.velocity.x= -self.velocity.x
-        elif bat.rect.centerx < self.rect.centerx: # bat in the left
+                bat.collision += 1
+                self.position.x = min(self.position.x - OFFSET, bat.rect.left - self.radius * 2)
+                self.rect.x = round(self.position.x)
+
+                # Calculate deflection angle based on hit location relative to paddle center
+                relative_y = self.rect.centery - bat.rect.centery
+                half_height = max(1, bat.rect.height / 2)
+                normalized_y = max(-1.0, min(1.0, relative_y / half_height))
+                bounce_angle = normalized_y * MAX_BOUNCE_ANGLE
+
+                speed = max(1.0, self.velocityconst)
+                self.velocity.x = -abs(speed * math.cos(bounce_angle))
+                self.velocity.y = speed * math.sin(bounce_angle)
+
+        elif bat.rect.centerx < self.rect.centerx: # bat on the left
             if self.velocity.x < 0:
-                bat.collision+= 1
-                self.position.x = self.position.x + OFFSET
-                self.velocity.x= -self.velocity.x
+                bat.collision += 1
+                self.position.x = max(self.position.x + OFFSET, bat.rect.right)
+                self.rect.x = round(self.position.x)
+
+
+                relative_y = self.rect.centery - bat.rect.centery
+                half_height = max(1, bat.rect.height / 2)
+                normalized_y = max(-1.0, min(1.0, relative_y / half_height))
+                bounce_angle = normalized_y * MAX_BOUNCE_ANGLE
+
+                speed = max(1.0, self.velocityconst)
+                self.velocity.x = abs(speed * math.cos(bounce_angle))
+                self.velocity.y = speed * math.sin(bounce_angle)
+
     def velocity_update(self):
         unit_vec = self.velocity.normalize()
         self.velocity = Vectorcls.multi(unit_vec,self.velocityconst)

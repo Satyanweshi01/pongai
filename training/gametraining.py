@@ -431,18 +431,18 @@ class GATraining:
             self.all_time_best_fitness = best_candidate_fitness
             best_candidate.redbat.brain.weights_save(save_path)
             prefix = "Manual save" if manual else "Exit save"
-            print(f"💾 {prefix}: New best weights saved! Gen: {self.gen} | Fitness: {best_candidate_fitness:.4f}")
+            print(f"{prefix}: New best weights saved! Gen: {self.gen} | Fitness: {best_candidate_fitness:.4f}")
         elif manual:
-            print(f"💾 Manual save: All-time best weights already up-to-date (Fitness: {self.all_time_best_fitness:.4f})")
+            print(f"Manual save: All-time best weights already up-to-date (Fitness: {self.all_time_best_fitness:.4f})")
         else:
             if self.all_time_best_fitness != -float("inf"):
-                print(f"💾 Training finished. All-time best weights preserved with fitness: {self.all_time_best_fitness:.4f}")
+                print(f"Training finished. All-time best weights preserved with fitness: {self.all_time_best_fitness:.4f}")
             else:
                 # If stopped in Generation 0 before any generation completed
                 best_ind = max(self.gameinstances, key=lambda x: x.fitness_cal())
                 best_ind.redbat.brain.weights_save(save_path)
                 self.all_time_best_fitness = best_ind.fitness_cal()
-                print(f"💾 Exit save: Gen 0 baseline weights saved with fitness: {self.all_time_best_fitness:.4f}")
+                print(f"Exit save: Gen 0 baseline weights saved with fitness: {self.all_time_best_fitness:.4f}")
 
         if not manual:
             self.saved_on_exit = True
