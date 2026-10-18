@@ -54,6 +54,10 @@ class NeuralNetwork:
             self.hiddenlayer1.biases = data["hiddenlayer1biases"].ravel().copy()
             self.outputlayer.weights = data["outputlayerweights"].copy()
             self.outputlayer.biases = data["outputlayerbiases"].ravel().copy()
+            # Dynamically derive architecture dimensions from loaded weights
+            self.n_inputs = self.hiddenlayer1.weights.shape[0]
+            self.n_hidden = self.hiddenlayer1.weights.shape[1]
+            self.n_outputs = self.outputlayer.weights.shape[1]
 
     def forward(self, inputs):
         # 1. Hidden layer with Tanh activation (smooth, bounded between -1 and 1, no dead units)
@@ -64,3 +68,51 @@ class NeuralNetwork:
 
         # 3. Argmax directly selects action: 0 = stay, 1 = up, 2 = down
         return int(np.argmax(out))
+
+    def get_forward_details(self, inputs):
+        """
+        Returns full telemetry of the forward pass for visualization:
+        - raw inputs
+        - multiplications per input-to-hidden connection
+        - linear sums, biases, weighted sums (z), and tanh activations for hidden layer
+        - multiplications, linear sums, biases, logits (z_out), and argmax decision for output layer
+        """
+        x = np.array(inputs, dtype=np.float64)
+        if x.ndim == 1:
+            x_vec = x
+        else:
+            x_vec = x.ravel()
+
+        w1 = self.hiddenlayer1.weights
+        b1 = self.hiddenlayer1.biases
+        w2 = self.outputlayer.weights
+        b2 = self.outputlayer.biases
+
+        # Hidden layer: x_i * w_ij
+        # Shape: (n_inputs, n_hidden)
+        hidden_products = x_vec[:, None] * w1
+        hidden_linear_sums = np.sum(hidden_products, axis=0)
+        hidden_weighted_sums = hidden_linear_sums + b1  # z_j
+        hidden_activations = np.tanh(hidden_weighted_sums)  # a_j = tanh(z_j)
+
+        # Output layer: a_j * w_jk
+        # Shape: (n_hidden, n_outputs)
+        output_products = hidden_activations[:, None] * w2
+        output_linear_sums = np.sum(output_products, axis=0)
+        output_weighted_sums = output_linear_sums + b2  # z_out_k
+        decision = int(np.argmax(output_weighted_sums))
+
+        return {
+            "inputs": x_vec,
+            "hidden_products": hidden_products,
+            "hidden_linear_sums": hidden_linear_sums,
+            "hidden_biases": b1,
+            "hidden_weighted_sums": hidden_weighted_sums,
+            "hidden_activations": hidden_activations,
+            "output_products": output_products,
+            "output_linear_sums": output_linear_sums,
+            "output_biases": b2,
+            "output_weighted_sums": output_weighted_sums,
+            "decision": decision,
+        }
+
