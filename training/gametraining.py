@@ -1,3 +1,4 @@
+import os
 import pygame
 import time
 import matplotlib
@@ -161,7 +162,7 @@ class GameInstance:
             if self.redbat.bat.rect.y < self.config.BAT_BOTTOM_BOUNDARY:
                 self.redbat.bat.rect.y+=self.config.BAT_SENSITIVITY
 
-    def draw(self, gen=0, best_fitness=0.0, speed=1):
+    def draw(self, gen=0, best_fitness=0.0, all_time_best_fitness=0.0, speed=1):
         # This method is called ONLY for the AI being displayed
         centerLine(screen=self.screen, config=self.config)
 
@@ -170,10 +171,10 @@ class GameInstance:
         self.bluebat.bat.draw()
 
         # info board
-        hud_surface = pygame.Surface((270, 130), pygame.SRCALPHA)
+        hud_surface = pygame.Surface((340, 145), pygame.SRCALPHA)
         hud_surface.fill((8, 14, 26, 210))  # dark glassmorphism panel
         self.screen.blit(hud_surface, (15, 15))
-        pygame.draw.rect(self.screen, (0, 220, 255), (15, 15, 270, 130), width=1, border_radius=6)
+        pygame.draw.rect(self.screen, (0, 220, 255), (15, 15, 340, 145), width=1, border_radius=6)
 
         font_large = pygame.font.SysFont("Arial", 18, bold=True)
         font_small = pygame.font.SysFont("Arial", 13, bold=True)
@@ -181,12 +182,13 @@ class GameInstance:
         action_names = {0: "HOLD [ — ]", 1: "UP [ ▲ ]", 2: "DOWN [ ▼ ]"}
         WHITE = (255, 255, 255)
 
+        record_str = f"{all_time_best_fitness:+.2f}" if all_time_best_fitness != -float("inf") else "0.00"
         gen_text = font_large.render(f"GENERATION: {gen:03d}", True, WHITE)
-        fit_text = font_large.render(f"BEST FIT: {best_fitness:+.2f}", True, WHITE)
+        fit_text = font_small.render(f"CURR FIT: {best_fitness:+.2f} | ALL-TIME: {record_str}", True, WHITE)
         score_text = font_small.render(f"SCORE: Blue {self.bluebat.bat.score:02d} | Red {self.redbat.bat.score:02d}", True, WHITE)
         hits_text = font_small.render(f"RALLY DEFLECTIONS: {self.redbat.bat.collision}", True, WHITE)
         act_text = font_small.render(f"AI ACTION: {action_names.get(self.last_action, 'UNKNOWN')}", True, WHITE)
-        speed_text = font_small.render(f"SPEED: {speed}x  [↑/↓ Speed, SPACE Pause]", True, WHITE)
+        speed_text = font_small.render(f"SPEED: {speed}x  [↑/↓ Speed, SPACE Pause, S Save, ESC Quit]", True, WHITE)
 
         self.screen.blit(gen_text, (25, 20))
         self.screen.blit(fit_text, (25, 42))
@@ -264,8 +266,10 @@ class GATraining:
 
         self.best_to_render = self.gameinstances[0]
         self.best_fitness = 0.0
+        self.all_time_best_fitness = -float("inf") # -float("inf") is used to produce negative infinity so even if fitness is in negative the best gets saved
         self.simulation_steps_per_frame = 1  
         self.paused = False
+        self.saved_on_exit = False
 
         self.generation_history = []
         self.average_fitness_history = []
@@ -331,7 +335,13 @@ class GATraining:
         best_individual = max(self.gameinstances,key=lambda x: x.raw_fitness)
         best_fitness = best_individual.raw_fitness
         self.best_fitness = best_fitness
-        best_individual.redbat.brain.weights_save("bestweight")
+
+        # Save only if a new all-time best record is achieved
+        if best_fitness > self.all_time_best_fitness:
+            self.all_time_best_fitness = best_fitness
+            save_path = os.path.join(os.path.dirname(__file__), "bestweight")
+            best_individual.redbat.brain.weights_save(save_path)
+            print(f"New all-time best weights saved! Gen: {self.gen} | Fitness: {best_fitness:.4f}")
         
         self.update_graph()
         self.gen += 1
@@ -382,6 +392,7 @@ class GATraining:
         self.best_to_render.draw(
             gen=self.gen,
             best_fitness=self.best_fitness,
+            all_time_best_fitness=self.all_time_best_fitness,
             speed=self.simulation_steps_per_frame
         )
 
@@ -400,29 +411,75 @@ class GATraining:
         self.fig.canvas.flush_events()
         plt.pause(0.001)
 
-ga = GATraining(80, 0.05, screen)  
+    def save_on_exit(self, manual=False):
+        if not manual and self.saved_on_exit:
+            return
 
-while running:
-    # to end the game loop or handle interactive speed controls
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
-                ga.simulation_steps_per_frame = min(30, ga.simulation_steps_per_frame + 2)
-                print(f"Simulation fast-forward speed: {ga.simulation_steps_per_frame}x")
-            elif event.key == pygame.K_DOWN:
-                ga.simulation_steps_per_frame = max(1, ga.simulation_steps_per_frame - 2)
-                print(f"Simulation fast-forward speed: {ga.simulation_steps_per_frame}x")
-            elif event.key == pygame.K_SPACE:
-                ga.paused = not ga.paused
-                print("Simulation Paused" if ga.paused else "Simulation Resumed")
+        save_path = os.path.join(os.path.dirname(__file__), "bestweight")
+
+        # Check current ongoing population for any individual with higher fitness
+        best_candidate = None
+        best_candidate_fitness = self.all_time_best_fitness
+
+        for gameinstance in self.gameinstances:
+            current_fit = gameinstance.fitness_cal()
+            if current_fit > best_candidate_fitness:
+                best_candidate_fitness = current_fit
+                best_candidate = gameinstance
+
+        if best_candidate is not None:
+            self.all_time_best_fitness = best_candidate_fitness
+            best_candidate.redbat.brain.weights_save(save_path)
+            prefix = "Manual save" if manual else "Exit save"
+            print(f"💾 {prefix}: New best weights saved! Gen: {self.gen} | Fitness: {best_candidate_fitness:.4f}")
+        elif manual:
+            print(f"💾 Manual save: All-time best weights already up-to-date (Fitness: {self.all_time_best_fitness:.4f})")
+        else:
+            if self.all_time_best_fitness != -float("inf"):
+                print(f"💾 Training finished. All-time best weights preserved with fitness: {self.all_time_best_fitness:.4f}")
+            else:
+                # If stopped in Generation 0 before any generation completed
+                best_ind = max(self.gameinstances, key=lambda x: x.fitness_cal())
+                best_ind.redbat.brain.weights_save(save_path)
+                self.all_time_best_fitness = best_ind.fitness_cal()
+                print(f"💾 Exit save: Gen 0 baseline weights saved with fitness: {self.all_time_best_fitness:.4f}")
+
+        if not manual:
+            self.saved_on_exit = True
 
 
-    ga.reproduction()
-    
-    pygame.display.flip()
-    clock.tick(60)
+if __name__ == "__main__":
+    ga = GATraining(100, 0.05, screen)  
 
-pygame.quit()
-plt.close("all")
+    try:
+        while running:
+            # to end the game loop or handle interactive speed controls
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        ga.simulation_steps_per_frame = min(30, ga.simulation_steps_per_frame + 2)
+                        print(f"Simulation fast-forward speed: {ga.simulation_steps_per_frame}x")
+                    elif event.key == pygame.K_DOWN:
+                        ga.simulation_steps_per_frame = max(1, ga.simulation_steps_per_frame - 2)
+                        print(f"Simulation fast-forward speed: {ga.simulation_steps_per_frame}x")
+                    elif event.key == pygame.K_SPACE:
+                        ga.paused = not ga.paused
+                        print("Simulation Paused" if ga.paused else "Simulation Resumed")
+                    elif event.key == pygame.K_s:
+                        ga.save_on_exit(manual=True)
+                    elif event.key in (pygame.K_ESCAPE, pygame.K_q):
+                        running = False
+                        print("Exiting training session...")
+
+            ga.reproduction()
+            
+            pygame.display.flip()
+            clock.tick(60)
+    except KeyboardInterrupt:
+        print("\nTraining interrupted by user (Ctrl+C).")
+    finally:
+        ga.save_on_exit()
+        pygame.quit()
+        plt.close("all")
