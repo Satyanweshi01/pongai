@@ -2,14 +2,12 @@ import numpy as np
 
 class DenseLayer:
     def __init__(self, n_inputs, n_neurons):
-        # Xavier/He-style initialization suitable for tanh activation
-        self.weights = np.random.randn(n_inputs, n_neurons) * np.sqrt(2.0 / n_inputs)
-        self.biases = np.random.normal(0, 0.05, (1, n_neurons))
+        # Xavier/Glorot initialization suitable for tanh activation
+        self.weights = np.random.randn(n_inputs, n_neurons) * np.sqrt(1.0 / n_inputs)
+        self.biases = np.zeros(n_neurons)
 
     def forward(self, inputs):
-        inputs = np.asarray(inputs, dtype=float).reshape(1, -1)
-        self.output = np.dot(inputs, self.weights) + self.biases
-        return self.output
+        return np.dot(inputs, self.weights) + self.biases
 
 
 class NeuralNetwork:
@@ -53,9 +51,9 @@ class NeuralNetwork:
     def weights_load(self, npz_file):
         with np.load(npz_file) as data:
             self.hiddenlayer1.weights = data["hiddenlayer1weights"].copy()
-            self.hiddenlayer1.biases = data["hiddenlayer1biases"].copy()
+            self.hiddenlayer1.biases = data["hiddenlayer1biases"].ravel().copy()
             self.outputlayer.weights = data["outputlayerweights"].copy()
-            self.outputlayer.biases = data["outputlayerbiases"].copy()
+            self.outputlayer.biases = data["outputlayerbiases"].ravel().copy()
 
     def forward(self, inputs):
         # 1. Hidden layer with Tanh activation (smooth, bounded between -1 and 1, no dead units)

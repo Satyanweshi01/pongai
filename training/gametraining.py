@@ -38,7 +38,7 @@ delta_time = 0.1
 
 class GameInstance:
     """each of the gameinstance object has a redbat to train and each of the redbat has brain which is a neural network object
-    Here that neural network is the DNA I have to work with.
+    Here that neural network's weights and biases are the DNA I have to work with.
     """
     def __init__(self,width,height,screen):
         self.config = Config(width,height)#Config(650,350)
