@@ -214,13 +214,13 @@ class GATraining:
         for i in range(population_size):
             self.gameinstances.append(GameInstance(1200,700,screen))
 
-        self.steps_per_generation = 1200  # fast generation cycles for time-lapse
+        self.steps_per_generation = 3600  # fast generation cycles for time-lapse
         self.steps_this_generation = 0
 
         self.best_to_render = self.gameinstances[0]
         self.best_fitness = 0.0
         self.all_time_best_fitness = -float("inf") # -float("inf") is used to produce negative infinity so even if fitness is in negative the best gets saved
-        self.simulation_steps_per_frame = 1  
+        self.simulation_steps_per_frame = 50  
         self.paused = False
         self.saved_on_exit = False
 
