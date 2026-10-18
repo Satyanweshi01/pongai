@@ -129,3 +129,56 @@ def timerDisplay(screen,formatted_time,config):
         width // 2, round(39 * scale),
         font="Arial", size=max(1, round(9 * scale)), bold=True
     )
+
+
+def infoBoard(
+    screen,
+    gen=0,
+    best_fitness=0.0,
+    all_time_best_fitness=0.0,
+    blue_score=0,
+    red_score=0,
+    rally_deflections=0,
+    last_action=0,
+    speed=1,
+    config=None
+):
+    width = config.WINDOW_WIDTH if config else screen.get_width()
+    height = config.WINDOW_HEIGHT if config else screen.get_height()
+    scale = get_scale(width, height)
+
+    hud_width = round(340 * scale)
+    hud_height = round(145 * scale)
+    hud_x = round(15 * scale)
+    hud_y = round(15 * scale)
+
+    # Dark translucent background panel without cyan border
+    hud_surface = pygame.Surface((hud_width, hud_height), pygame.SRCALPHA)
+    pygame.draw.rect(
+        hud_surface,
+        (8, 14, 26, 210),
+        (0, 0, hud_width, hud_height),
+        border_radius=round(8 * scale)
+    )
+    screen.blit(hud_surface, (hud_x, hud_y))
+
+    font_large = pygame.font.SysFont("Arial", max(1, round(18 * scale)), bold=True)
+    font_small = pygame.font.SysFont("Arial", max(1, round(13 * scale)), bold=True)
+
+    action_names = {0: "HOLD [ — ]", 1: "UP [ ▲ ]", 2: "DOWN [ ▼ ]"}
+    WHITE = (255, 255, 255)
+
+    record_str = f"{all_time_best_fitness:+.2f}" if all_time_best_fitness != -float("inf") else "0.00"
+    gen_text = font_large.render(f"GENERATION: {gen:03d}", True, WHITE)
+    fit_text = font_small.render(f"CURR FIT: {best_fitness:+.2f} | ALL-TIME: {record_str}", True, WHITE)
+    score_text = font_small.render(f"SCORE: Blue {blue_score:02d} | Red {red_score:02d}", True, WHITE)
+    hits_text = font_small.render(f"RALLY DEFLECTIONS: {rally_deflections}", True, WHITE)
+    act_text = font_small.render(f"AI ACTION: {action_names.get(last_action, 'UNKNOWN')}", True, WHITE)
+    speed_text = font_small.render(f"SPEED: {speed}x  [↑/↓ Speed, SPACE Pause, S Save, ESC Quit]", True, WHITE)
+
+    screen.blit(gen_text, (hud_x + round(10 * scale), hud_y + round(5 * scale)))
+    screen.blit(fit_text, (hud_x + round(10 * scale), hud_y + round(27 * scale)))
+    screen.blit(score_text, (hud_x + round(10 * scale), hud_y + round(50 * scale)))
+    screen.blit(hits_text, (hud_x + round(10 * scale), hud_y + round(67 * scale)))
+    screen.blit(act_text, (hud_x + round(10 * scale), hud_y + round(84 * scale)))
+    screen.blit(speed_text, (hud_x + round(10 * scale), hud_y + round(103 * scale)))

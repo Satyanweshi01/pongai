@@ -10,7 +10,7 @@ import numpy as np
 from random import choice,random
 from config import Config
 from game_comp import PaddleCreature,Ball,Bat,text
-from ui_comp import centerLine
+from ui_comp import centerLine, infoBoard
 
 
 pygame.init()
@@ -179,31 +179,19 @@ class GameInstance:
         self.bluebat.bat.draw()
 
         # info board
-        hud_surface = pygame.Surface((340, 145), pygame.SRCALPHA)
-        hud_surface.fill((8, 14, 26, 210))  # dark glassmorphism panel
-        self.screen.blit(hud_surface, (15, 15))
-        pygame.draw.rect(self.screen, (0, 220, 255), (15, 15, 340, 145), width=1, border_radius=6)
+        infoBoard(
+            screen=self.screen,
+            gen=gen,
+            best_fitness=best_fitness,
+            all_time_best_fitness=all_time_best_fitness,
+            blue_score=self.bluebat.bat.score,
+            red_score=self.redbat.bat.score,
+            rally_deflections=self.redbat.bat.collision,
+            last_action=self.last_action,
+            speed=speed,
+            config=self.config
+        )
 
-        font_large = pygame.font.SysFont("Arial", 18, bold=True)
-        font_small = pygame.font.SysFont("Arial", 13, bold=True)
-
-        action_names = {0: "HOLD [ — ]", 1: "UP [ ▲ ]", 2: "DOWN [ ▼ ]"}
-        WHITE = (255, 255, 255)
-
-        record_str = f"{all_time_best_fitness:+.2f}" if all_time_best_fitness != -float("inf") else "0.00"
-        gen_text = font_large.render(f"GENERATION: {gen:03d}", True, WHITE)
-        fit_text = font_small.render(f"CURR FIT: {best_fitness:+.2f} | ALL-TIME: {record_str}", True, WHITE)
-        score_text = font_small.render(f"SCORE: Blue {self.bluebat.bat.score:02d} | Red {self.redbat.bat.score:02d}", True, WHITE)
-        hits_text = font_small.render(f"RALLY DEFLECTIONS: {self.redbat.bat.collision}", True, WHITE)
-        act_text = font_small.render(f"AI ACTION: {action_names.get(self.last_action, 'UNKNOWN')}", True, WHITE)
-        speed_text = font_small.render(f"SPEED: {speed}x  [↑/↓ Speed, SPACE Pause, S Save, ESC Quit]", True, WHITE)
-
-        self.screen.blit(gen_text, (25, 20))
-        self.screen.blit(fit_text, (25, 42))
-        self.screen.blit(score_text, (25, 65))
-        self.screen.blit(hits_text, (25, 82))
-        self.screen.blit(act_text, (25, 99))
-        self.screen.blit(speed_text, (25, 118))
         
     @staticmethod
     def clone(ParentA, screen):
