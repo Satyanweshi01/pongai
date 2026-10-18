@@ -1,8 +1,8 @@
 # Pongai - A Autonomous Game Agent using Neuroevolution that plays pong game really well
 
-I always wondered what a AI, ML, Neural Network, Deep Learning truely means. So after finishing cs50, when the I has to built a final project as my final assignment. I knew this was good time to explore the vast world of AI.
+I always wondered what a AI, ML, Neural Network, Deep Learning truely means. So after finishing cs50, when I has to built a final project as my final assignment. I knew this was good time to explore the vast world of AI.
 
-This project is the result of my exploration. Here I mixed up my favourite things - arcade game and neural networks.  
+This project is the result of my exploration. Here I mixed up my old favourite thing with a new favourite thing - arcade game and neural networks.  
 
 I built a AI that uses Neural Networks(written with raw python and numpy) trained via Genetic Algorithms (evolutionary strategies) to learn optimal paddle control without hardcoded rules.
 
