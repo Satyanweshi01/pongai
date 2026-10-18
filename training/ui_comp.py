@@ -147,12 +147,12 @@ def infoBoard(
     height = config.WINDOW_HEIGHT if config else screen.get_height()
     scale = get_scale(width, height)
 
-    hud_width = round(340 * scale)
+    hud_width = round(400 * scale)
     hud_height = round(145 * scale)
     hud_x = round(15 * scale)
     hud_y = round(15 * scale)
 
-    # Dark translucent background panel without cyan border
+    # Dark translucent background panel
     hud_surface = pygame.Surface((hud_width, hud_height), pygame.SRCALPHA)
     pygame.draw.rect(
         hud_surface,
