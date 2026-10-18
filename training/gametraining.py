@@ -197,57 +197,14 @@ class GameInstance:
         self.screen.blit(act_text, (25, 99))
         self.screen.blit(speed_text, (25, 118))
         
-    def clone(ParentA,screen):
-        child = GameInstance(1200,700,screen)
-
-        # child.redbat.brain.hiddenlayer1.weights = np.where(
-        #     np.random.random(
-        #         ParentA.redbat.brain.hiddenlayer1.weights.shape
-        #     ) < 0.5,
-        #     ParentA.redbat.brain.hiddenlayer1.weights,
-        #     ParentB.redbat.brain.hiddenlayer1.weights
-        # ).copy()
-
-        # child.redbat.brain.hiddenlayer1.biases = np.where(
-        #     np.random.random(
-        #         ParentA.redbat.brain.hiddenlayer1.biases.shape
-        #     ) < 0.5,
-        #     ParentA.redbat.brain.hiddenlayer1.biases,
-        #     ParentB.redbat.brain.hiddenlayer1.biases
-        # ).copy()
-
-        # child.redbat.brain.outputlayer.weights = np.where(
-        #     np.random.random(
-        #         ParentA.redbat.brain.outputlayer.weights.shape
-        #     ) < 0.5,
-        #     ParentA.redbat.brain.outputlayer.weights,
-        #     ParentB.redbat.brain.outputlayer.weights
-        # ).copy()
-
-        # child.redbat.brain.outputlayer.biases = np.where(
-        #     np.random.random(
-        #         ParentA.redbat.brain.outputlayer.biases.shape
-        #     ) < 0.5,
-        #     ParentA.redbat.brain.outputlayer.biases,
-        #     ParentB.redbat.brain.outputlayer.biases
-        # ).copy() this code just randomly picks the parent weights and combines them to create a child that is fine for other scenerio but for case of neural network it breaks them
-        child.redbat.brain.hiddenlayer1.weights = ParentA.redbat.brain.hiddenlayer1.weights.copy()
-        child.redbat.brain.hiddenlayer1.biases = ParentA.redbat.brain.hiddenlayer1.biases.copy()
-        child.redbat.brain.outputlayer.weights = ParentA.redbat.brain.outputlayer.weights.copy()
-        child.redbat.brain.outputlayer.biases = ParentA.redbat.brain.outputlayer.biases.copy()
-
+    @staticmethod
+    def clone(ParentA, screen):
+        child = GameInstance(1200, 700, screen)
+        child.redbat.brain = ParentA.redbat.brain.clone()
         return child
-    def mutate(self,mutation_rate):
-        for weights in [self.redbat.brain.hiddenlayer1.weights, self.redbat.brain.outputlayer.weights]:
-            mask = np.random.random(weights.shape) < mutation_rate
-            weights[mask] += np.random.normal(0, 0.1, size= np.count_nonzero(mask))
-            np.clip(weights, -3.0, 3.0, out = weights)
 
-        bias_mutation_rate = max(0.20, mutation_rate*3)
-        for biases in [self.redbat.brain.hiddenlayer1.biases, self.redbat.brain.outputlayer.biases]:
-            mask = np.random.random(biases.shape) < bias_mutation_rate
-            biases[mask] += np.random.normal(0, 0.1, size= np.count_nonzero(mask))
-            np.clip(biases, -3.0, 3.0, out = biases) 
+    def mutate(self, mutation_rate):
+        self.redbat.brain.mutate(mutation_rate) 
 
 
 
