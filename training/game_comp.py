@@ -45,9 +45,12 @@ class Vectorcls():
         vec = self.normalize()
         return Vectorcls.multi(vec,mag)
     
-    def dot(a,b):
-        angle = math.acos(((a.position.x * b.position.x)+(a.position.y*b.position.y))/a.mag()*b.mag())
-        return angle
+    def dot(a, b):
+        denom = a.mag() * b.mag()
+        if denom == 0:
+            return 0.0
+        val = max(-1.0, min(1.0, (a.x * b.x + a.y * b.y) / denom))
+        return math.acos(val)
 
     def angle(self):
         return math.atan2(self.y, self.x)
@@ -103,13 +106,17 @@ class Ball(Mover):
             self.radius * 2,
             self.radius * 2
         )
-        self.velocity.x = random.choice([-self.velocityconst,self.velocityconst])
-        self.velocity.y = random.choice([-self.velocityconst,self.velocityconst])
         self.startingpos_x = x
         self.startingpos_y = y
         self.rect.x = x
         self.rect.y = y
         self.screen = screen
+
+        # Random serve angle between -35 and +35 degrees
+        serve_angle = random.uniform(-math.pi / 5, math.pi / 5)
+        direction = random.choice([-1.0, 1.0])
+        self.velocity.x = direction * self.velocityconst * math.cos(serve_angle)
+        self.velocity.y = self.velocityconst * math.sin(serve_angle)
 
     def draw(self):
         self.rect.x = round(self.position.x)
@@ -174,12 +181,13 @@ class Ball(Mover):
         self.rect.x = round(self.position.x)
         self.rect.y = round(self.position.y)
 
-        self.velocity.x = random.choice(
-            [-self.velocityconst, self.velocityconst]
-        )
-        self.velocity.y = random.choice(
-            [-self.velocityconst, self.velocityconst]
-        )
+        # Random serve angle between -35 and +35 degrees
+        serve_angle = random.uniform(-math.pi / 5, math.pi / 5)
+        direction = random.choice([-1.0, 1.0])
+        speed = max(1.0, self.velocityconst)
+
+        self.velocity.x = direction * speed * math.cos(serve_angle)
+        self.velocity.y = speed * math.sin(serve_angle)
 
 #bat
 class Bat():
