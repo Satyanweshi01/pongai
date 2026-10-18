@@ -203,8 +203,8 @@ class GameInstance:
         child.redbat.brain = ParentA.redbat.brain.clone()
         return child
 
-    def mutate(self, mutation_rate):
-        self.redbat.brain.mutate(mutation_rate) 
+    def mutate(self, mutation_rate, sigma=0.1):
+        self.redbat.brain.mutate(mutation_rate, sigma=sigma) 
 
 
 
@@ -306,22 +306,21 @@ class GATraining:
         elite = GameInstance.clone(best_individual,self.screen) # straight way cloning the parent to avoid the crossover distruction and making the process mutation only
         childgameinstances.append(elite)
 
+        current_sigma = max(0.02, 0.15 * (0.98 ** self.gen))
+
+        def get_parent(): # switching to tournament selection method
+            contestants = [
+                choice(self.gameinstances)
+                for _ in range(3)
+            ]
+            return max(
+                contestants,
+                key=lambda individual: individual.raw_fitness
+            )
 
         for _ in range(self.population_size-1):
-            def get_parent(): # switching to tornament selection method
-                contestants = [
-                    choice(self.gameinstances)
-                    for _ in range(3)
-                ]
-                return max(
-                    contestants,
-                    key=lambda individual: individual.raw_fitness
-                )
-            # ParentA = get_parent()
-            # ParentB = get_parent()
-            # child = GameInstance.crossover(ParentA,ParentB,self.screen)
             child = GameInstance.clone(get_parent(),self.screen) # straight way cloning the parent to avoid the crossover distruction and making the process mutation only
-            child.mutate(self.mutation_rate)
+            child.mutate(self.mutation_rate, sigma=current_sigma)
             childgameinstances.append(child)
 
         # after selection
