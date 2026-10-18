@@ -145,13 +145,13 @@ class GameInstance:
                 self.bluebat.bat.rect.y += self.config.BAT_SENSITIVITY
 
         
-        redbat_inputs = [ # sending normalized inputs to the redbat's neural network
-            self.ball.position.x / self.config.WINDOW_WIDTH,
-            self.ball.position.y / self.config.WINDOW_HEIGHT,
-            self.ball.velocity.x / 15,
-            self.ball.velocity.y / 15,
-            self.redbat.bat.rect.x / self.config.WINDOW_WIDTH,
-            self.redbat.bat.rect.y / self.config.WINDOW_HEIGHT
+        redbat_inputs = [ # zero-centered normalized inputs to the redbat's neural network (-1.0 to 1.0)
+            (self.ball.position.x - self.config.CENTER_X) / self.config.CENTER_X, #-1.0 is left edge(blue side), +1.0 is right edge(red side)
+            (self.ball.position.y - self.config.CENTER_Y) / self.config.CENTER_Y, #-1.0 is top edge, 0.0 is mid-table ,+1.0 is bottom edge
+            self.ball.velocity.x / 15, # negative is moving left, positive is moving right
+            self.ball.velocity.y / 15, # negative is moving up, positive is moving down
+            (self.ball.position.y - self.redbat.bat.rect.centery) / self.config.WINDOW_HEIGHT, # negative means ball is above paddle center, positive means ball is below paddle center, 0.0 is at the center
+            (self.redbat.bat.rect.centery - self.config.CENTER_Y) / self.config.CENTER_Y # negative means paddle is in upper half of the table, positive means paddle is in lower half of the table, 0.0 is at the center
         ]
         redbat_decision = self.redbat.brain.forward(redbat_inputs)
         self.last_action = redbat_decision
