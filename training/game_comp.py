@@ -45,12 +45,9 @@ class Vectorcls():
         vec = self.normalize()
         return Vectorcls.multi(vec,mag)
     
-    def dot(a, b):
-        denom = a.mag() * b.mag()
-        if denom == 0:
-            return 0.0
-        val = max(-1.0, min(1.0, (a.x * b.x + a.y * b.y) / denom))
-        return math.acos(val)
+    def dot(a,b):
+        angle = math.acos(((a.position.x * b.position.x)+(a.position.y*b.position.y))/a.mag()*b.mag())
+        return angle
 
     def angle(self):
         return math.atan2(self.y, self.x)
