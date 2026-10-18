@@ -74,7 +74,10 @@ I abondoned this architecture because it was not performing well. The ReLU activ
 
 I also used a tweaked version of genetic algorithm, Instead of using crossover and mutation to create next generation, I used only mutation to create next generation. Because I noticed that in the case of traditional genetic algorithm with crossover and mutation, the crossover destroys the good weights from the parents. 
 
-I also used tournament selection instead of roulette wheel selection and also I used elitism to preserve the best neural networks.
+- **Mutation-Only Reproduction**: Omitted crossover entirely, as recombining weights from two parents tended to destroy learned behaviors.
+- **Tournament Selection**: Replaced roulette wheel selection with 3-way tournament selection to maintain steady selection pressure.
+- **Elitism**: The best-performing network from each generation is carried over directly into the next without any mutation.
+- **Decaying Mutation Step Size (sigma)**: The mutation magnitude decreases exponentially each generation (max(0.02, 0.15 * (0.98 ** gen))), shifting the algorithm from broad exploration early on to careful fine-tuning later.
 
 #### The sandbox environment I used to train the ai consists of- 
 1. Rule based opponent (blue bat)
